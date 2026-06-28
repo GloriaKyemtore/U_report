@@ -1,0 +1,2492 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>U-Report — Gestion des Réclamations Universitaires</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --bg-page: #f5f6f8;
+            --bg-surface: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #fafbfc;
+            --bg-input: #f3f4f6;
+            --border: #e5e7eb;
+            --border-light: #d1d5db;
+            --accent: #e8890c;
+            --accent-bright: #f59e0b;
+            --accent-dim: #c27509;
+            --accent-glow: rgba(245, 158, 11, 0.1);
+            --accent-glow-strong: rgba(245, 158, 11, 0.2);
+            --accent-bg: #fffbeb;
+            --teal: #0d9488;
+            --teal-bg: #f0fdfa;
+            --rose: #e11d48;
+            --rose-bg: #fff1f2;
+            --sky: #0284c7;
+            --sky-bg: #f0f9ff;
+            --violet: #7c3aed;
+            --violet-bg: #f5f3ff;
+            --slate: #64748b;
+            --slate-bg: #f8fafc;
+            --text-primary: #111827;
+            --text-secondary: #4b5563;
+            --text-muted: #9ca3af;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.08);
+            --shadow-xl: 0 16px 50px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg-page);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* ===== Pages ===== */
+        .page {
+            display: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeUp 0.35s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== Landing ===== */
+        .landing-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            transition: box-shadow 0.3s ease;
+        }
+
+        .landing-nav.scrolled {
+            box-shadow: var(--shadow-md);
+        }
+
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(170deg, #ffffff 0%, #fffbeb 40%, #fef3c7 100%);
+        }
+
+        /* Formes décoratives hero */
+        .hero-shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.5;
+            filter: blur(60px);
+            pointer-events: none;
+        }
+
+        .hero-shape-1 {
+            width: 500px;
+            height: 500px;
+            top: -120px;
+            right: -100px;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.25), transparent 70%);
+            animation: floatA 20s ease-in-out infinite;
+        }
+
+        .hero-shape-2 {
+            width: 400px;
+            height: 400px;
+            bottom: -80px;
+            left: -60px;
+            background: radial-gradient(circle, rgba(13, 148, 136, 0.15), transparent 70%);
+            animation: floatB 25s ease-in-out infinite;
+        }
+
+        .hero-shape-3 {
+            width: 200px;
+            height: 200px;
+            top: 40%;
+            left: 50%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.12), transparent 70%);
+            animation: floatC 18s ease-in-out infinite;
+        }
+
+        @keyframes floatA {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(-30px, 20px) scale(1.08);
+            }
+        }
+
+        @keyframes floatB {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(20px, -30px) scale(1.1);
+            }
+        }
+
+        @keyframes floatC {
+
+            0%,
+            100% {
+                transform: translate(0, 0);
+            }
+
+            50% {
+                transform: translate(-15px, 25px);
+            }
+        }
+
+        /* Grille points subtile hero */
+        .hero-dots {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image: radial-gradient(circle, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+            background-size: 28px 28px;
+            mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 70%);
+            -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 50%, black 20%, transparent 70%);
+        }
+
+        /* Feature cards landing */
+        .feature-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px 28px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-4px);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        /* Stat landing */
+        .stat-landing {
+            text-align: center;
+            padding: 24px;
+        }
+
+        .stat-landing-num {
+            font-family: 'Space Grotesk';
+            font-size: 40px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Scroll reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== Cartes app ===== */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-light);
+        }
+
+        .card-interactive:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        /* ===== Inputs ===== */
+        .input-field {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            width: 100%;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        select.input-field {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+
+        select.input-field option {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+        }
+
+        textarea.input-field {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* ===== Boutons ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-dim);
+            box-shadow: 0 4px 16px var(--accent-glow-strong);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--accent);
+            border: 1.5px solid var(--border-light);
+        }
+
+        .btn-secondary:hover {
+            background: var(--accent-bg);
+            border-color: var(--accent);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            padding: 8px 12px;
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-primary);
+            background: var(--bg-input);
+        }
+
+        .btn-outline-white {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1.5px solid var(--border-light);
+        }
+
+        .btn-outline-white:hover {
+            background: var(--bg-input);
+            border-color: var(--text-muted);
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 13px;
+        }
+
+        .btn-lg {
+            padding: 14px 32px;
+            font-size: 16px;
+            border-radius: 10px;
+        }
+
+        /* ===== Badges ===== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            flex-shrink: 0;
+        }
+
+        .badge-pending {
+            background: var(--accent-bg);
+            color: var(--accent-dim);
+        }
+
+        .badge-assigned {
+            background: var(--sky-bg);
+            color: var(--sky);
+        }
+
+        .badge-inprogress {
+            background: var(--violet-bg);
+            color: var(--violet);
+        }
+
+        .badge-resolved {
+            background: var(--teal-bg);
+            color: var(--teal);
+        }
+
+        .badge-closed {
+            background: var(--slate-bg);
+            color: var(--slate);
+        }
+
+        .badge-urgent {
+            background: var(--rose-bg);
+            color: var(--rose);
+        }
+
+        .badge-normal {
+            background: var(--teal-bg);
+            color: var(--teal);
+        }
+
+        .badge-low {
+            background: var(--slate-bg);
+            color: var(--slate);
+        }
+
+        .badge-role-admin {
+            background: var(--violet-bg);
+            color: var(--violet);
+        }
+
+        .badge-role-tech {
+            background: var(--sky-bg);
+            color: var(--sky);
+        }
+
+        .badge-role-student {
+            background: var(--teal-bg);
+            color: var(--teal);
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 256px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 16px;
+            border-radius: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            margin: 2px 12px;
+        }
+
+        .sidebar-link:hover {
+            color: var(--text-primary);
+            background: var(--bg-input);
+        }
+
+        .sidebar-link.active {
+            color: var(--accent);
+            background: var(--accent-bg);
+            font-weight: 600;
+        }
+
+        .sidebar-link i {
+            width: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .main-content {
+            margin-left: 256px;
+            min-height: 100vh;
+            background: var(--bg-page);
+        }
+
+        /* ===== Topbar ===== */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* ===== Stat cards ===== */
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card .stat-icon {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        /* ===== Machine à états ===== */
+        .state-machine {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            padding: 16px 0;
+        }
+
+        .state-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            z-index: 1;
+        }
+
+        .state-dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            border: 2px solid var(--border-light);
+            background: var(--bg-surface);
+            color: var(--text-muted);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .state-dot.reached {
+            border-color: var(--accent);
+            background: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 0 4px var(--accent-glow);
+        }
+
+        .state-dot.current {
+            border-color: var(--accent);
+            background: var(--bg-surface);
+            color: var(--accent);
+            animation: sPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes sPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 var(--accent-glow);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px transparent;
+            }
+        }
+
+        .state-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .state-label.reached {
+            color: var(--accent-dim);
+        }
+
+        .state-connector {
+            flex: 1;
+            height: 2px;
+            background: var(--border);
+            min-width: 28px;
+            margin-bottom: 20px;
+        }
+
+        .state-connector.filled {
+            background: var(--accent);
+        }
+
+        /* ===== Messages ===== */
+        .message-bubble {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.55;
+        }
+
+        .message-bubble.sent {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+            color: #fff;
+            border-bottom-right-radius: 4px;
+            margin-left: auto;
+        }
+
+        .message-bubble.received {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 10px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .message-bubble.sent .message-time {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ===== Toast ===== */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 3.5s forwards;
+            box-shadow: var(--shadow-xl);
+            max-width: 380px;
+        }
+
+        .toast-success {
+            background: #052e16;
+            color: #86efac;
+            border: 1px solid #166534;
+        }
+
+        .toast-error {
+            background: #450a0a;
+            color: #fca5a5;
+            border: 1px solid #991b1b;
+        }
+
+        .toast-info {
+            background: #0c1929;
+            color: #7dd3fc;
+            border: 1px solid #1e40af;
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+            }
+
+            to {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+        }
+
+        /* ===== Modal ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            animation: fadeUp 0.2s ease;
+        }
+
+        .modal-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 480px;
+            width: 92%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl);
+        }
+
+        /* ===== Login ===== */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: linear-gradient(170deg, #fff 0%, #fffbeb 50%, #fef3c7 100%);
+        }
+
+        .login-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 44px 36px;
+            max-width: 420px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--teal), var(--accent));
+            background-size: 200% 100%;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        /* ===== Table ===== */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-page);
+        }
+
+        .data-table td {
+            padding: 14px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        .data-table tr:hover td {
+            background: var(--accent-bg);
+            color: var(--text-primary);
+        }
+
+        .data-table tr {
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+
+        /* ===== Tabs ===== */
+        .tab-btn {
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-secondary);
+            background: var(--bg-input);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            background: var(--accent-bg);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .notif-dot {
+            position: absolute;
+            top: -1px;
+            right: -1px;
+            width: 8px;
+            height: 8px;
+            background: var(--rose);
+            border-radius: 50%;
+            animation: nPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes nPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 5px rgba(225, 29, 72, 0);
+            }
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            font-family: 'Space Grotesk', sans-serif;
+            flex-shrink: 0;
+        }
+
+        .chart-wrap {
+            position: relative;
+            width: 100%;
+        }
+
+        .chart-wrap canvas {
+            width: 100% !important;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 3px;
+        }
+
+        .mobile-toggle {
+            display: none;
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-toggle {
+                display: flex;
+            }
+
+            .sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.3);
+                z-index: 45;
+                display: none;
+            }
+
+            .sidebar-overlay.show {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .topbar {
+                padding: 12px 16px;
+            }
+
+            .login-card {
+                padding: 32px 22px;
+            }
+
+            .resp-2 {
+                grid-template-columns: 1fr !important;
+            }
+
+            .resp-chart {
+                grid-template-columns: 1fr !important;
+            }
+
+            .hero-grid {
+                grid-template-columns: 1fr !important;
+                text-align: center;
+            }
+
+            .hero-grid .hero-badges {
+                justify-content: center;
+            }
+
+            .hero-grid .hero-btns {
+                justify-content: center;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+
+            .hero-shape-1 {
+                width: 300px;
+                height: 300px;
+            }
+
+            .hero-shape-2 {
+                width: 250px;
+                height: 250px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ======================================================= -->
+    <!-- LANDING PAGE                                              -->
+    <!-- ======================================================= -->
+    <div class="page active" id="pageLanding">
+
+        <!-- Nav landing -->
+        <nav class="landing-nav" id="landingNav">
+            <div
+                style="max-width:1200px;margin:0 auto;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div
+                        style="width:36px;height:36px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;">
+                        <i class="fa-solid fa-bullhorn" style="color:#fff;font-size:15px;"></i>
+                    </div>
+                    <span
+                        style="font-family:'Space Grotesk';font-weight:700;font-size:18px;color:var(--text-primary);">U-Report</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <a style="font-size:14px;color:var(--text-secondary);text-decoration:none;font-weight:500;cursor:pointer;"
+                        onclick="document.getElementById('featuresSection').scrollIntoView({behavior:'smooth'})">Fonctionnalités</a>
+                    <button class="btn btn-primary btn-sm" onclick="go('login')">
+                        <i class="fa-solid fa-right-to-bracket"></i> Connexion
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero -->
+        <section class="hero-section">
+            <div class="hero-shape hero-shape-1"></div>
+            <div class="hero-shape hero-shape-2"></div>
+            <div class="hero-shape hero-shape-3"></div>
+            <div class="hero-dots"></div>
+
+            <div style="max-width:1200px;margin:0 auto;padding:120px 32px 80px;position:relative;z-index:1;width:100%;">
+                <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:60px;align-items:center;"
+                    class="hero-grid">
+                    <div>
+                        <div
+                            style="display:inline-flex;align-items:center;gap:8px;background:var(--accent-bg);border:1px solid rgba(245,158,11,0.2);border-radius:24px;padding:5px 14px 5px 6px;margin-bottom:24px;">
+                            <span
+                                style="background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:12px;font-family:'Space Grotesk';">NOUVEAU</span>
+                            <span style="font-size:13px;color:var(--accent-dim);font-weight:500;">Plateforme de
+                                réclamations</span>
+                        </div>
+                        <h1
+                            style="font-size:clamp(36px,5vw,56px);font-weight:700;line-height:1.08;margin-bottom:20px;color:var(--text-primary);">
+                            Signalez, suivez,<br>
+                            <span
+                                style="background:linear-gradient(135deg,var(--accent),var(--accent-dim));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">résolvez.</span>
+                        </h1>
+                        <p
+                            style="font-size:18px;color:var(--text-secondary);line-height:1.65;margin-bottom:32px;max-width:500px;">
+                            U-Report simplifie la gestion des réclamations universitaires. Déposez un ticket en 30
+                            secondes, suivez son avancement en temps réel.
+                        </p>
+                        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:40px;" class="hero-btns">
+                            <button class="btn btn-primary btn-lg" onclick="go('login')">
+                                Commencer maintenant <i class="fa-solid fa-arrow-right" style="font-size:14px;"></i>
+                            </button>
+                            <button class="btn btn-outline-white btn-lg"
+                                onclick="document.getElementById('featuresSection').scrollIntoView({behavior:'smooth'})">
+                                <i class="fa-solid fa-play" style="font-size:12px;"></i> En savoir plus
+                            </button>
+                        </div>
+                        <div style="display:flex;gap:24px;align-items:center;" class="hero-badges">
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <i class="fa-solid fa-bolt" style="color:var(--accent);font-size:14px;"></i>
+                                <span style="font-size:13px;color:var(--text-secondary);font-weight:500;">Dépôt
+                                    rapide</span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <i class="fa-solid fa-eye" style="color:var(--teal);font-size:14px;"></i>
+                                <span style="font-size:13px;color:var(--text-secondary);font-weight:500;">Suivi en temps
+                                    réel</span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <i class="fa-solid fa-shield-halved" style="color:var(--sky);font-size:14px;"></i>
+                                <span
+                                    style="font-size:13px;color:var(--text-secondary);font-weight:500;">Sécurisé</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Illustration CSS -->
+                    <div style="position:relative;" class="hero-illustration">
+                        <div
+                            style="background:var(--bg-surface);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:var(--shadow-xl);position:relative;">
+                            <!-- Fausse topbar -->
+                            <div
+                                style="display:flex;align-items:center;gap:8px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+                                <div style="width:10px;height:10px;border-radius:50%;background:#fca5a5;"></div>
+                                <div style="width:10px;height:10px;border-radius:50%;background:#fcd34d;"></div>
+                                <div style="width:10px;height:10px;border-radius:50%;background:#86efac;"></div>
+                                <div
+                                    style="flex:1;margin-left:12px;height:8px;background:var(--bg-input);border-radius:4px;">
+                                </div>
+                            </div>
+                            <!-- Faux tickets -->
+                            <div style="display:flex;flex-direction:column;gap:10px;">
+                                <div
+                                    style="background:var(--accent-bg);border:1px solid rgba(245,158,11,0.15);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+                                    <div
+                                        style="width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0;">
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div
+                                            style="height:8px;background:var(--accent);border-radius:4px;width:70%;opacity:0.3;margin-bottom:6px;">
+                                        </div>
+                                        <div
+                                            style="height:6px;background:var(--border-light);border-radius:3px;width:45%;">
+                                        </div>
+                                    </div>
+                                    <span
+                                        style="font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-bg);padding:3px 8px;border-radius:6px;white-space:nowrap;">UR-0042</span>
+                                </div>
+                                <div
+                                    style="background:var(--sky-bg);border:1px solid rgba(2,132,199,0.1);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+                                    <div
+                                        style="width:8px;height:8px;border-radius:50%;background:var(--sky);flex-shrink:0;">
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div
+                                            style="height:8px;background:var(--sky);border-radius:4px;width:60%;opacity:0.3;margin-bottom:6px;">
+                                        </div>
+                                        <div
+                                            style="height:6px;background:var(--border-light);border-radius:3px;width:35%;">
+                                        </div>
+                                    </div>
+                                    <span
+                                        style="font-size:10px;font-weight:700;color:var(--sky);background:var(--sky-bg);padding:3px 8px;border-radius:6px;white-space:nowrap;">UR-0041</span>
+                                </div>
+                                <div
+                                    style="background:var(--teal-bg);border:1px solid rgba(13,148,136,0.1);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;">
+                                    <div
+                                        style="width:8px;height:8px;border-radius:50%;background:var(--teal);flex-shrink:0;">
+                                    </div>
+                                    <div style="flex:1;">
+                                        <div
+                                            style="height:8px;background:var(--teal);border-radius:4px;width:75%;opacity:0.3;margin-bottom:6px;">
+                                        </div>
+                                        <div
+                                            style="height:6px;background:var(--border-light);border-radius:3px;width:50%;">
+                                        </div>
+                                    </div>
+                                    <span
+                                        style="font-size:10px;font-weight:700;color:var(--teal);background:var(--teal-bg);padding:3px 8px;border-radius:6px;white-space:nowrap;">UR-0040</span>
+                                </div>
+                            </div>
+                            <!-- Faux compteur -->
+                            <div
+                                style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;">
+                                <div style="text-align:center;">
+                                    <div
+                                        style="font-size:18px;font-weight:700;font-family:'Space Grotesk';color:var(--text-primary);">
+                                        142</div>
+                                    <div style="font-size:10px;color:var(--text-muted);">Tickets</div>
+                                </div>
+                                <div style="text-align:center;">
+                                    <div
+                                        style="font-size:18px;font-weight:700;font-family:'Space Grotesk';color:var(--teal);">
+                                        69%</div>
+                                    <div style="font-size:10px;color:var(--text-muted);">Résolus</div>
+                                </div>
+                                <div style="text-align:center;">
+                                    <div
+                                        style="font-size:18px;font-weight:700;font-family:'Space Grotesk';color:var(--accent);">
+                                        3.2j</div>
+                                    <div style="font-size:10px;color:var(--text-muted);">Délai moy.</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Élément flottant -->
+                        <div
+                            style="position:absolute;top:-16px;right:-16px;background:var(--teal);color:#fff;border-radius:12px;padding:10px 16px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:8px;animation:floatC 4s ease-in-out infinite;">
+                            <i class="fa-solid fa-check-circle" style="font-size:18px;"></i>
+                            <div>
+                                <div style="font-size:11px;font-weight:700;">Résolu</div>
+                                <div style="font-size:9px;opacity:0.8;">il y a 2 min</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stats -->
+        <section
+            style="background:var(--bg-surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+            <div style="max-width:1000px;margin:0 auto;padding:48px 32px;">
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;" class="stats-grid">
+                    <div class="stat-landing reveal">
+                        <div class="stat-landing-num">142</div>
+                        <div style="font-size:14px;color:var(--text-secondary);margin-top:4px;">Réclamations traitées
+                        </div>
+                    </div>
+                    <div class="stat-landing reveal">
+                        <div class="stat-landing-num">69%</div>
+                        <div style="font-size:14px;color:var(--text-secondary);margin-top:4px;">Taux de résolution</div>
+                    </div>
+                    <div class="stat-landing reveal">
+                        <div class="stat-landing-num">3.2j</div>
+                        <div style="font-size:14px;color:var(--text-secondary);margin-top:4px;">Délai moyen</div>
+                    </div>
+                    <div class="stat-landing reveal">
+                        <div class="stat-landing-num">850+</div>
+                        <div style="font-size:14px;color:var(--text-secondary);margin-top:4px;">Étudiants inscrits</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section id="featuresSection" style="padding:80px 32px;">
+            <div style="max-width:1100px;margin:0 auto;">
+                <div style="text-align:center;margin-bottom:56px;" class="reveal">
+                    <h2 style="font-size:32px;font-weight:700;margin-bottom:12px;">Tout ce dont vous avez besoin</h2>
+                    <p style="font-size:16px;color:var(--text-secondary);max-width:520px;margin:0 auto;">Un processus
+                        simple et transparent, du dépôt à la résolution de votre réclamation.</p>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;" class="features-grid">
+                    <div class="feature-card reveal">
+                        <div class="feature-icon" style="background:var(--accent-bg);color:var(--accent);"><i
+                                class="fa-solid fa-pen-to-square"></i></div>
+                        <h3 style="font-size:17px;font-weight:700;margin-bottom:8px;">Dépôt simplifié</h3>
+                        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Formulaire intuitif avec
+                            catégories, priorités et pièces jointes. Déposez votre réclamation en moins de 30 secondes.
+                        </p>
+                    </div>
+                    <div class="feature-card reveal">
+                        <div class="feature-icon" style="background:var(--sky-bg);color:var(--sky);"><i
+                                class="fa-solid fa-route"></i></div>
+                        <h3 style="font-size:17px;font-weight:700;margin-bottom:8px;">Suivi en temps réel</h3>
+                        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Machine à états claire :
+                            de l'enregistrement à la résolution, chaque étape est visible et traçable.</p>
+                    </div>
+                    <div class="feature-card reveal">
+                        <div class="feature-icon" style="background:var(--teal-bg);color:var(--teal);"><i
+                                class="fa-solid fa-comments"></i></div>
+                        <h3 style="font-size:17px;font-weight:700;margin-bottom:8px;">Discussion intégrée</h3>
+                        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Échangez directement avec
+                            le technicien assigné via un fil de discussion imbriqué dans chaque ticket.</p>
+                    </div>
+                    <div class="feature-card reveal">
+                        <div class="feature-icon" style="background:var(--violet-bg);color:var(--violet);"><i
+                                class="fa-solid fa-chart-pie"></i></div>
+                        <h3 style="font-size:17px;font-weight:700;margin-bottom:8px;">Tableau de bord admin</h3>
+                        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Graphiques et
+                            statistiques en temps réel pour piloter la résolution des réclamations à l'échelle de
+                            l'université.</p>
+                    </div>
+                    <div class="feature-card reveal">
+                        <div class="feature-icon" style="background:var(--rose-bg);color:var(--rose);"><i
+                                class="fa-solid fa-bell"></i></div>
+                        <h3 style="font-size:17px;font-weight:700;margin-bottom:8px;">Notifications par email</h3>
+                        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Soyez informé à chaque
+                            changement de statut, assignation ou nouveau message sur vos réclamations.</p>
+                    </div>
+                    <div class="feature-card reveal">
+                        <div class="feature-icon" style="background:var(--slate-bg);color:var(--slate);"><i
+                                class="fa-solid fa-users-gear"></i></div>
+                        <h3 style="font-size:17px;font-weight:700;margin-bottom:8px;">Rôles et permissions</h3>
+                        <p style="font-size:14px;color:var(--text-secondary);line-height:1.6;">Système RBAC : étudiants,
+                            techniciens et administrateurs ont des accès adaptés à leur rôle.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA final -->
+        <section
+            style="padding:80px 32px;background:linear-gradient(135deg,#fffbeb,#fef3c7);border-top:1px solid rgba(245,158,11,0.1);">
+            <div style="max-width:600px;margin:0 auto;text-align:center;" class="reveal">
+                <h2 style="font-size:28px;font-weight:700;margin-bottom:12px;">Prêt à simplifier vos réclamations ?</h2>
+                <p style="font-size:16px;color:var(--text-secondary);margin-bottom:28px;">Rejoignez les 850+ étudiants
+                    qui utilisent déjà U-Report.</p>
+                <button class="btn btn-primary btn-lg" onclick="go('login')">
+                    Se connecter <i class="fa-solid fa-arrow-right" style="font-size:14px;"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer style="background:var(--bg-surface);border-top:1px solid var(--border);padding:32px;">
+            <div
+                style="max-width:1200px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <div
+                        style="width:28px;height:28px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center;">
+                        <i class="fa-solid fa-bullhorn" style="color:#fff;font-size:11px;"></i>
+                    </div>
+                    <span
+                        style="font-family:'Space Grotesk';font-weight:600;font-size:14px;color:var(--text-primary);">U-Report</span>
+                </div>
+                <p style="font-size:13px;color:var(--text-muted);">Projet universitaire — KYEMTORE Gloria & OUEDRAOGO
+                    Akram</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- CONNEXION                                                 -->
+    <!-- ======================================================= -->
+    <div class="page" id="pageLogin">
+        <div class="login-container">
+            <div style="text-align:center;margin-bottom:20px;">
+                <a style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none;margin-bottom:16px;"
+                    onclick="go('landing')">
+                    <i class="fa-solid fa-arrow-left" style="font-size:13px;color:var(--text-muted);"></i>
+                    <span style="font-size:13px;color:var(--text-muted);">Retour</span>
+                </a>
+            </div>
+            <div class="login-card">
+                <div style="text-align:center;margin-bottom:30px;">
+                    <div
+                        style="display:inline-flex;align-items:center;justify-content:center;width:50px;height:50px;border-radius:13px;background:var(--accent-bg);margin-bottom:14px;">
+                        <i class="fa-solid fa-bullhorn" style="font-size:21px;color:var(--accent);"></i>
+                    </div>
+                    <h1 style="font-size:24px;font-weight:700;margin-bottom:4px;">Connexion</h1>
+                    <p style="color:var(--text-muted);font-size:14px;">Accédez à votre espace U-Report</p>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label
+                        style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.04em;">Rôle</label>
+                    <select class="input-field" id="loginRole">
+                        <option value="etudiant">Étudiant</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label
+                        style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.04em;">Email</label>
+                    <input type="email" class="input-field" id="loginEmail" placeholder="prenom.nom@univ.bf"
+                        value="gloria.kyemtore@univ.bf">
+                </div>
+                <div style="margin-bottom:22px;position:relative;">
+                    <label
+                        style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;text-transform:uppercase;letter-spacing:0.04em;">Mot
+                        de passe</label>
+                    <input type="password" class="input-field" id="loginPassword" placeholder="Votre mot de passe"
+                        value="demo1234">
+                    <button onclick="togglePwd()"
+                        style="position:absolute;right:12px;top:30px;background:none;border:none;color:var(--text-muted);cursor:pointer;"
+                        aria-label="Afficher le mot de passe">
+                        <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+                <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;"
+                    onclick="handleLogin()">
+                    <i class="fa-solid fa-right-to-bracket"></i> Se connecter
+                </button>
+                <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text-muted);">Choisissez un rôle
+                    et cliquez sur Se connecter</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================= -->
+    <!-- LAYOUT APP                                                -->
+    <!-- ======================================================= -->
+    <div id="appLayout" style="display:none;">
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSB()"></div>
+        <nav class="sidebar" id="sidebar" role="navigation" aria-label="Navigation">
+            <div style="padding:18px 18px 14px;border-bottom:1px solid var(--border);">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div
+                        style="width:36px;height:36px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;">
+                        <i class="fa-solid fa-bullhorn" style="color:#fff;font-size:15px;"></i>
+                    </div>
+                    <div>
+                        <div style="font-family:'Space Grotesk';font-weight:700;font-size:16px;">U-Report</div>
+                        <div style="font-size:10px;color:var(--text-muted);letter-spacing:0.04em;">RÉCLAMATIONS</div>
+                    </div>
+                </div>
+            </div>
+            <div id="navEtu" style="padding:10px 0;flex:1;overflow-y:auto;">
+                <div
+                    style="padding:0 18px 7px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);">
+                    Principal</div>
+                <a class="sidebar-link active" onclick="go('sDash')" data-page="sDash"><i
+                        class="fa-solid fa-chart-line"></i>Tableau de bord</a>
+                <a class="sidebar-link" onclick="go('sNew')" data-page="sNew"><i
+                        class="fa-solid fa-plus-circle"></i>Nouvelle réclamation</a>
+                <a class="sidebar-link" onclick="go('sList')" data-page="sList"><i class="fa-solid fa-ticket"></i>Mes
+                    réclamations</a>
+                <div
+                    style="padding:14px 18px 7px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);">
+                    Compte</div>
+                <a class="sidebar-link" onclick="go('sProf')" data-page="sProf"><i
+                        class="fa-solid fa-user-circle"></i>Mon profil</a>
+            </div>
+            <div id="navAdm" style="padding:10px 0;flex:1;overflow-y:auto;display:none;">
+                <div
+                    style="padding:0 18px 7px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);">
+                    Gestion</div>
+                <a class="sidebar-link active" onclick="go('aDash')" data-page="aDash"><i
+                        class="fa-solid fa-gauge-high"></i>Tableau de bord</a>
+                <a class="sidebar-link" onclick="go('aTick')" data-page="aTick"><i
+                        class="fa-solid fa-list-check"></i>Toutes les réclamations</a>
+                <div
+                    style="padding:14px 18px 7px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);">
+                    Système</div>
+                <a class="sidebar-link" onclick="go('aUsr')" data-page="aUsr"><i
+                        class="fa-solid fa-users-gear"></i>Utilisateurs</a>
+            </div>
+            <div style="padding:14px 18px;border-top:1px solid var(--border);">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                    <div class="avatar"
+                        style="background:var(--accent-bg);color:var(--accent);width:32px;height:32px;font-size:11px;"
+                        id="sbAv">GK</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                            id="sbNm">Gloria Kyemtore</div>
+                        <div style="font-size:11px;color:var(--text-muted);" id="sbRl">Étudiant</div>
+                    </div>
+                </div>
+                <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;font-size:13px;"
+                    onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i>Déconnexion</button>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <header class="topbar">
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <button class="btn btn-ghost mobile-toggle" onclick="toggleSB()" aria-label="Menu"><i
+                            class="fa-solid fa-bars" style="font-size:17px;"></i></button>
+                    <h2 style="font-size:17px;font-weight:600;" id="topT">Tableau de bord</h2>
+                </div>
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <button class="btn btn-ghost" style="position:relative;"
+                        onclick="showToast('Aucune nouvelle notification','info')" aria-label="Notifications"><i
+                            class="fa-solid fa-bell" style="font-size:15px;"></i><span
+                            class="notif-dot"></span></button>
+                    <div class="avatar"
+                        style="background:var(--accent-bg);color:var(--accent);width:30px;height:30px;font-size:11px;"
+                        id="topAv">GK</div>
+                </div>
+            </header>
+
+            <!-- DASHBOARD ÉTUDIANT -->
+            <div class="page" id="pageSDash">
+                <div style="padding:26px 30px;">
+                    <div style="margin-bottom:24px;">
+                        <h2 style="font-size:22px;font-weight:700;margin-bottom:3px;">Bonjour, Gloria</h2>
+                        <p style="color:var(--text-muted);font-size:14px;">Voici l'état de vos réclamations</p>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:26px;"
+                        class="resp-2">
+                        <div class="card stat-card" style="padding:20px;">
+                            <div class="stat-icon" style="background:var(--accent-bg);color:var(--accent);"><i
+                                    class="fa-solid fa-layer-group"></i></div>
+                            <div
+                                style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">
+                                Total</div>
+                            <div style="font-size:30px;font-weight:700;font-family:'Space Grotesk';margin:2px 0;">7
+                            </div>
+                            <div style="font-size:12px;color:var(--text-secondary);">réclamations</div>
+                        </div>
+                        <div class="card stat-card" style="padding:20px;">
+                            <div class="stat-icon" style="background:var(--violet-bg);color:var(--violet);"><i
+                                    class="fa-solid fa-spinner"></i></div>
+                            <div
+                                style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">
+                                En cours</div>
+                            <div style="font-size:30px;font-weight:700;font-family:'Space Grotesk';margin:2px 0;">3
+                            </div>
+                            <div style="font-size:12px;color:var(--text-secondary);">en traitement</div>
+                        </div>
+                        <div class="card stat-card" style="padding:20px;">
+                            <div class="stat-icon" style="background:var(--teal-bg);color:var(--teal);"><i
+                                    class="fa-solid fa-circle-check"></i></div>
+                            <div
+                                style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">
+                                Résolues</div>
+                            <div style="font-size:30px;font-weight:700;font-family:'Space Grotesk';margin:2px 0;">3
+                            </div>
+                            <div style="font-size:12px;color:var(--text-secondary);">avec succès</div>
+                        </div>
+                        <div class="card stat-card" style="padding:20px;">
+                            <div class="stat-icon" style="background:var(--rose-bg);color:var(--rose);"><i
+                                    class="fa-solid fa-triangle-exclamation"></i></div>
+                            <div
+                                style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;">
+                                Urgentes</div>
+                            <div style="font-size:30px;font-weight:700;font-family:'Space Grotesk';margin:2px 0;">1
+                            </div>
+                            <div style="font-size:12px;color:var(--text-secondary);">en attente</div>
+                        </div>
+                    </div>
+                    <div class="card" style="overflow:hidden;">
+                        <div
+                            style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+                            <h3 style="font-size:15px;font-weight:600;">Réclamations récentes</h3><button
+                                class="btn btn-secondary btn-sm" onclick="go('sList')">Voir tout <i
+                                    class="fa-solid fa-arrow-right" style="font-size:10px;"></i></button>
+                        </div>
+                        <div style="overflow-x:auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ref.</th>
+                                        <th>Objet</th>
+                                        <th>Catégorie</th>
+                                        <th>Priorité</th>
+                                        <th>Statut</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr onclick="go('sDet')">
+                                        <td style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                            UR-0042</td>
+                                        <td style="color:var(--text-primary);font-weight:500;">Climatisation en panne
+                                            salle 204</td>
+                                        <td>Infrastructure</td>
+                                        <td><span class="badge badge-urgent">Urgente</span></td>
+                                        <td><span class="badge badge-inprogress">En traitement</span></td>
+                                        <td>14 juin 2026</td>
+                                    </tr>
+                                    <tr onclick="go('sDet')">
+                                        <td style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                            UR-0039</td>
+                                        <td style="color:var(--text-primary);font-weight:500;">Retard inscription UE
+                                            Complémentaire</td>
+                                        <td>Scolarité</td>
+                                        <td><span class="badge badge-normal">Normale</span></td>
+                                        <td><span class="badge badge-assigned">Assignée</span></td>
+                                        <td>10 juin 2026</td>
+                                    </tr>
+                                    <tr onclick="go('sDet')">
+                                        <td style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                            UR-0035</td>
+                                        <td style="color:var(--text-primary);font-weight:500;">WiFi défaillant au
+                                            bâtiment B</td>
+                                        <td>Numérique</td>
+                                        <td><span class="badge badge-normal">Normale</span></td>
+                                        <td><span class="badge badge-resolved">Résolue</span></td>
+                                        <td>5 juin 2026</td>
+                                    </tr>
+                                    <tr onclick="go('sDet')">
+                                        <td style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                            UR-0031</td>
+                                        <td style="color:var(--text-primary);font-weight:500;">Note absente sur le
+                                            portail</td>
+                                        <td>Scolarité</td>
+                                        <td><span class="badge badge-low">Basse</span></td>
+                                        <td><span class="badge badge-closed">Fermée</span></td>
+                                        <td>28 mai 2026</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOUVELLE RÉCLAMATION -->
+            <div class="page" id="pageSNew">
+                <div style="padding:26px 30px;max-width:760px;">
+                    <div style="margin-bottom:22px;">
+                        <h2 style="font-size:22px;font-weight:700;margin-bottom:3px;">Déposer une réclamation</h2>
+                        <p style="color:var(--text-muted);font-size:14px;">Décrivez votre problème avec le plus de
+                            détails possible</p>
+                    </div>
+                    <form id="tForm" onsubmit="submitT(event)">
+                        <div class="card" style="padding:26px;">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;"
+                                class="resp-2">
+                                <div><label
+                                        style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;">Catégorie
+                                        *</label><select class="input-field" required>
+                                        <option value="">Sélectionner...</option>
+                                        <option>Infrastructure</option>
+                                        <option>Scolarité</option>
+                                        <option>Enseignement</option>
+                                        <option>Services Numériques</option>
+                                        <option>Autres</option>
+                                    </select></div>
+                                <div><label
+                                        style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;">Priorité
+                                        *</label><select class="input-field" required>
+                                        <option value="">Sélectionner...</option>
+                                        <option>Basse</option>
+                                        <option selected>Normale</option>
+                                        <option>Urgente</option>
+                                    </select></div>
+                            </div>
+                            <div style="margin-bottom:16px;"><label
+                                    style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;">Objet
+                                    *</label><input type="text" class="input-field" id="tSubj"
+                                    placeholder="Résumé court de votre réclamation" required></div>
+                            <div style="margin-bottom:16px;"><label
+                                    style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;">Description
+                                    détaillée *</label><textarea class="input-field"
+                                    placeholder="Décrivez le problème, le lieu, la date..." required
+                                    style="min-height:120px;"></textarea></div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;"
+                                class="resp-2">
+                                <div><label
+                                        style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;">Lieu
+                                        / Bâtiment</label><input type="text" class="input-field"
+                                        placeholder="Ex: Bâtiment B, Salle 204"></div>
+                                <div><label
+                                        style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;">Pièce
+                                        jointe</label>
+                                    <div style="border:2px dashed var(--border-light);border-radius:8px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;"
+                                        onmouseover="this.style.borderColor='var(--accent)'"
+                                        onmouseout="this.style.borderColor='var(--border-light)'"
+                                        onclick="showToast('Fonctionnalité disponible dans la version finale','info')">
+                                        <i class="fa-solid fa-cloud-arrow-up"
+                                            style="font-size:20px;color:var(--text-muted);margin-bottom:4px;display:block;"></i><span
+                                            style="font-size:12px;color:var(--text-muted);">Cliquer ou glisser</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                style="display:flex;gap:10px;justify-content:flex-end;padding-top:14px;border-top:1px solid var(--border);">
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="go('sDash')">Annuler</button><button type="submit"
+                                    class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i>Envoyer</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- MES RÉCLAMATIONS -->
+            <div class="page" id="pageSList">
+                <div style="padding:26px 30px;">
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <h2 style="font-size:22px;font-weight:700;margin-bottom:3px;">Mes réclamations</h2>
+                            <p style="color:var(--text-muted);font-size:14px;">Suivez l'état de vos demandes</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="go('sNew')"><i class="fa-solid fa-plus"></i>Nouvelle
+                            réclamation</button>
+                    </div>
+                    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
+                        <button class="tab-btn active" onclick="filterT(this,'all')">Toutes (7)</button>
+                        <button class="tab-btn" onclick="filterT(this,'pending')">En attente</button>
+                        <button class="tab-btn" onclick="filterT(this,'progress')">En cours</button>
+                        <button class="tab-btn" onclick="filterT(this,'resolved')">Résolues</button>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:10px;" id="tList">
+                        <div class="card card-interactive" style="padding:18px 22px;cursor:pointer;"
+                            onclick="go('sDet')" data-st="progress">
+                            <div
+                                style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+                                <div style="flex:1;min-width:220px;">
+                                    <div
+                                        style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+                                        <span
+                                            style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);font-size:13px;">UR-0042</span><span
+                                            class="badge badge-urgent">Urgente</span><span
+                                            class="badge badge-inprogress">En traitement</span></div>
+                                    <h4 style="font-size:14px;font-weight:600;margin-bottom:3px;">Climatisation en panne
+                                        salle 204</h4>
+                                    <p style="font-size:12px;color:var(--text-muted);">Infrastructure — Bâtiment B,
+                                        Salle 204</p>
+                                </div>
+                                <div style="text-align:right;flex-shrink:0;">
+                                    <div style="font-size:11px;color:var(--text-muted);">14 juin 2026</div>
+                                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px;"><i
+                                            class="fa-solid fa-comment" style="margin-right:3px;"></i>3 messages</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card card-interactive" style="padding:18px 22px;cursor:pointer;"
+                            onclick="go('sDet')" data-st="progress">
+                            <div
+                                style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+                                <div style="flex:1;min-width:220px;">
+                                    <div
+                                        style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+                                        <span
+                                            style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);font-size:13px;">UR-0039</span><span
+                                            class="badge badge-normal">Normale</span><span
+                                            class="badge badge-assigned">Assignée</span></div>
+                                    <h4 style="font-size:14px;font-weight:600;margin-bottom:3px;">Retard inscription UE
+                                        Complémentaire</h4>
+                                    <p style="font-size:12px;color:var(--text-muted);">Scolarité — Secrétariat L2</p>
+                                </div>
+                                <div style="text-align:right;flex-shrink:0;">
+                                    <div style="font-size:11px;color:var(--text-muted);">10 juin 2026</div>
+                                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px;"><i
+                                            class="fa-solid fa-comment" style="margin-right:3px;"></i>1 message</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card card-interactive" style="padding:18px 22px;cursor:pointer;"
+                            onclick="go('sDet')" data-st="pending">
+                            <div
+                                style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+                                <div style="flex:1;min-width:220px;">
+                                    <div
+                                        style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+                                        <span
+                                            style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);font-size:13px;">UR-0041</span><span
+                                            class="badge badge-normal">Normale</span><span
+                                            class="badge badge-pending">En attente</span></div>
+                                    <h4 style="font-size:14px;font-weight:600;margin-bottom:3px;">Projecteur HS en
+                                        amphithéâtre A2</h4>
+                                    <p style="font-size:12px;color:var(--text-muted);">Infrastructure — Amphi A2</p>
+                                </div>
+                                <div style="text-align:right;flex-shrink:0;">
+                                    <div style="font-size:11px;color:var(--text-muted);">13 juin 2026</div>
+                                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px;"><i
+                                            class="fa-solid fa-comment" style="margin-right:3px;"></i>0 message</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card card-interactive" style="padding:18px 22px;cursor:pointer;"
+                            onclick="go('sDet')" data-st="resolved">
+                            <div
+                                style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+                                <div style="flex:1;min-width:220px;">
+                                    <div
+                                        style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+                                        <span
+                                            style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);font-size:13px;">UR-0035</span><span
+                                            class="badge badge-normal">Normale</span><span
+                                            class="badge badge-resolved">Résolue</span></div>
+                                    <h4 style="font-size:14px;font-weight:600;margin-bottom:3px;">WiFi défaillant au
+                                        bâtiment B</h4>
+                                    <p style="font-size:12px;color:var(--text-muted);">Numérique — Bâtiment B</p>
+                                </div>
+                                <div style="text-align:right;flex-shrink:0;">
+                                    <div style="font-size:11px;color:var(--text-muted);">5 juin 2026</div>
+                                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px;"><i
+                                            class="fa-solid fa-comment" style="margin-right:3px;"></i>5 messages</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card card-interactive" style="padding:18px 22px;cursor:pointer;"
+                            onclick="go('sDet')" data-st="resolved">
+                            <div
+                                style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+                                <div style="flex:1;min-width:220px;">
+                                    <div
+                                        style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+                                        <span
+                                            style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);font-size:13px;">UR-0031</span><span
+                                            class="badge badge-low">Basse</span><span
+                                            class="badge badge-closed">Fermée</span></div>
+                                    <h4 style="font-size:14px;font-weight:600;margin-bottom:3px;">Note absente sur le
+                                        portail</h4>
+                                    <p style="font-size:12px;color:var(--text-muted);">Scolarité — Portail étudiant</p>
+                                </div>
+                                <div style="text-align:right;flex-shrink:0;">
+                                    <div style="font-size:11px;color:var(--text-muted);">28 mai 2026</div>
+                                    <div style="font-size:11px;color:var(--text-muted);margin-top:2px;"><i
+                                            class="fa-solid fa-comment" style="margin-right:3px;"></i>2 messages</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DÉTAIL TICKET -->
+            <div class="page" id="pageSDet">
+                <div style="padding:26px 30px;">
+                    <div style="display:flex;align-items:center;gap:7px;margin-bottom:18px;font-size:13px;"><a
+                            style="color:var(--text-muted);cursor:pointer;" onclick="go('sList')">Mes réclamations</a><i
+                            class="fa-solid fa-chevron-right" style="font-size:9px;color:var(--text-muted);"></i><span
+                            style="color:var(--accent);font-weight:600;">UR-0042</span></div>
+                    <div class="card" style="padding:26px;margin-bottom:18px;">
+                        <div
+                            style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+                            <div style="flex:1;min-width:260px;">
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+                                    <span
+                                        style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);font-size:15px;">UR-0042</span><span
+                                        class="badge badge-urgent">Urgente</span><span class="badge badge-inprogress">En
+                                        traitement</span></div>
+                                <h2 style="font-size:20px;font-weight:700;margin-bottom:7px;">Climatisation en panne
+                                    salle 204</h2>
+                                <div
+                                    style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--text-muted);">
+                                    <span><i class="fa-solid fa-folder"
+                                            style="margin-right:5px;"></i>Infrastructure</span><span><i
+                                            class="fa-solid fa-location-dot" style="margin-right:5px;"></i>Bâtiment B,
+                                        Salle 204</span><span><i class="fa-solid fa-calendar"
+                                            style="margin-right:5px;"></i>14 juin 2026</span></div>
+                            </div>
+                            <div style="flex-shrink:0;text-align:right;">
+                                <div style="font-size:11px;color:var(--text-muted);margin-bottom:3px;">Assigné à</div>
+                                <div style="display:flex;align-items:center;gap:7px;justify-content:flex-end;">
+                                    <div class="avatar"
+                                        style="background:var(--sky-bg);color:var(--sky);width:28px;height:28px;font-size:10px;">
+                                        TK</div><span style="font-size:13px;font-weight:600;">T. Kaboré</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border);">
+                            <div
+                                style="font-size:11px;font-weight:700;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.04em;">
+                                Parcours du ticket</div>
+                            <div class="state-machine">
+                                <div class="state-step">
+                                    <div class="state-dot reached"><i class="fa-solid fa-check"
+                                            style="font-size:10px;"></i></div><span
+                                        class="state-label reached">Déposé</span>
+                                </div>
+                                <div class="state-connector filled"></div>
+                                <div class="state-step">
+                                    <div class="state-dot reached"><i class="fa-solid fa-check"
+                                            style="font-size:10px;"></i></div><span class="state-label reached">En
+                                        attente</span>
+                                </div>
+                                <div class="state-connector filled"></div>
+                                <div class="state-step">
+                                    <div class="state-dot reached"><i class="fa-solid fa-check"
+                                            style="font-size:10px;"></i></div><span
+                                        class="state-label reached">Assigné</span>
+                                </div>
+                                <div class="state-connector filled"></div>
+                                <div class="state-step">
+                                    <div class="state-dot current">4</div><span class="state-label reached">En
+                                        traitement</span>
+                                </div>
+                                <div class="state-connector"></div>
+                                <div class="state-step">
+                                    <div class="state-dot">5</div><span class="state-label">Résolu</span>
+                                </div>
+                                <div class="state-connector"></div>
+                                <div class="state-step">
+                                    <div class="state-dot">6</div><span class="state-label">Fermé</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" class="resp-2">
+                        <div class="card" style="padding:22px;">
+                            <h3 style="font-size:14px;font-weight:600;margin-bottom:14px;"><i
+                                    class="fa-solid fa-file-lines"
+                                    style="margin-right:7px;color:var(--accent);"></i>Description</h3>
+                            <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;">La climatisation de
+                                la salle 204 du bâtiment B est complètement hors service depuis le lundi 9 juin. La
+                                température dépasse les 35°C en milieu de journée.</p>
+                            <p style="font-size:13px;color:var(--text-secondary);line-height:1.7;margin-top:10px;">
+                                Plusieurs étudiants ont signalé des malaises. Les cours de programmation de 10h à 14h
+                                sont particulièrement affectés.</p>
+                            <div
+                                style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--text-muted);">
+                                Déposé par <strong style="color:var(--text-secondary);">Gloria Kyemtore</strong> — L2
+                                Informatique, Groupe 3</div>
+                        </div>
+                        <div class="card" style="padding:0;display:flex;flex-direction:column;max-height:460px;">
+                            <div style="padding:18px 22px;border-bottom:1px solid var(--border);">
+                                <h3 style="font-size:14px;font-weight:600;"><i class="fa-solid fa-comments"
+                                        style="margin-right:7px;color:var(--accent);"></i>Discussion (3)</h3>
+                            </div>
+                            <div id="msgC"
+                                style="flex:1;overflow-y:auto;padding:18px 22px;display:flex;flex-direction:column;gap:14px;">
+                                <div style="display:flex;gap:9px;align-items:flex-start;">
+                                    <div class="avatar"
+                                        style="background:var(--sky-bg);color:var(--sky);width:30px;height:30px;font-size:10px;">
+                                        TK</div>
+                                    <div>
+                                        <div style="font-size:11px;font-weight:600;margin-bottom:3px;">T. Kaboré <span
+                                                style="color:var(--text-muted);font-weight:400;">— Technicien</span>
+                                        </div>
+                                        <div class="message-bubble received">Bonjour, le ticket a été pris en charge.
+                                            Intervention prévue demain matin.</div>
+                                        <div class="message-time">14 juin, 16:30</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:9px;align-items:flex-start;flex-direction:row-reverse;">
+                                    <div class="avatar"
+                                        style="background:var(--accent-bg);color:var(--accent);width:30px;height:30px;font-size:10px;">
+                                        GK</div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:11px;font-weight:600;margin-bottom:3px;"><span
+                                                style="font-weight:400;color:var(--text-muted);">Vous — </span>15 juin,
+                                            09:15</div>
+                                        <div class="message-bubble sent">Merci ! Les cours de 10h peuvent-ils être
+                                            maintenus ?</div>
+                                        <div class="message-time" style="text-align:right;">15 juin, 09:15</div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:9px;align-items:flex-start;">
+                                    <div class="avatar"
+                                        style="background:var(--sky-bg);color:var(--sky);width:30px;height:30px;font-size:10px;">
+                                        TK</div>
+                                    <div>
+                                        <div style="font-size:11px;font-weight:600;margin-bottom:3px;">T. Kaboré <span
+                                                style="color:var(--text-muted);font-weight:400;">— Technicien</span>
+                                        </div>
+                                        <div class="message-bubble received">Le compresseur doit être remplacé. Demandez
+                                            une salle de rechange pour aujourd'hui.</div>
+                                        <div class="message-time">15 juin, 11:45</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:8px;">
+                                <input type="text" class="input-field" id="msgI" placeholder="Écrire un message..."
+                                    style="flex:1;" onkeydown="if(event.key==='Enter')sendMsg()"><button
+                                    class="btn btn-primary btn-sm" onclick="sendMsg()" style="padding:10px 14px;"><i
+                                        class="fa-solid fa-paper-plane"></i></button></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROFIL -->
+            <div class="page" id="pageSProf">
+                <div style="padding:26px 30px;max-width:600px;">
+                    <h2 style="font-size:22px;font-weight:700;margin-bottom:22px;">Mon profil</h2>
+                    <div class="card" style="padding:28px;">
+                        <div style="display:flex;align-items:center;gap:18px;margin-bottom:24px;">
+                            <div class="avatar"
+                                style="width:56px;height:56px;font-size:20px;background:var(--accent-bg);color:var(--accent);">
+                                GK</div>
+                            <div>
+                                <h3 style="font-size:18px;font-weight:700;">Gloria Kyemtore</h3>
+                                <p style="color:var(--text-muted);font-size:13px;">gloria.kyemtore@univ.bf</p>
+                            </div>
+                        </div>
+                        <div style="display:grid;gap:14px;">
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="resp-2">
+                                <div>
+                                    <div
+                                        style="font-size:11px;color:var(--text-muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.03em;">
+                                        Matricule</div>
+                                    <div style="font-size:14px;font-weight:600;">2024-INF-L2-042</div>
+                                </div>
+                                <div>
+                                    <div
+                                        style="font-size:11px;color:var(--text-muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.03em;">
+                                        Niveau</div>
+                                    <div style="font-size:14px;font-weight:600;">Licence 2 Informatique</div>
+                                </div>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;" class="resp-2">
+                                <div>
+                                    <div
+                                        style="font-size:11px;color:var(--text-muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.03em;">
+                                        Groupe</div>
+                                    <div style="font-size:14px;font-weight:600;">Groupe 3</div>
+                                </div>
+                                <div>
+                                    <div
+                                        style="font-size:11px;color:var(--text-muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.03em;">
+                                        Département</div>
+                                    <div style="font-size:14px;font-weight:600;">Informatique</div>
+                                </div>
+                            </div>
+                            <div style="padding-top:14px;border-top:1px solid var(--border);">
+                                <div
+                                    style="font-size:11px;color:var(--text-muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:0.03em;">
+                                    Téléphone</div>
+                                <div style="font-size:14px;font-weight:600;">+226 70 00 00 00</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:22px;padding-top:14px;border-top:1px solid var(--border);"><button
+                                class="btn btn-secondary btn-sm"
+                                onclick="showToast('Fonctionnalité prévue en v2','info')"><i
+                                    class="fa-solid fa-pen"></i>Modifier</button></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DASHBOARD ADMIN -->
+            <div class="page" id="pageADash">
+                <div style="padding:26px 30px;">
+                    <div style="margin-bottom:24px;">
+                        <h2 style="font-size:22px;font-weight:700;margin-bottom:3px;">Tableau de bord Admin</h2>
+                        <p style="color:var(--text-muted);font-size:14px;">Vue d'ensemble de la plateforme U-Report</p>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:26px;"
+                        class="resp-2">
+                        <div class="card stat-card" style="padding:18px;">
+                            <div class="stat-icon" style="background:var(--accent-bg);color:var(--accent);"><i
+                                    class="fa-solid fa-layer-group"></i></div>
+                            <div
+                                style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;">
+                                Total</div>
+                            <div style="font-size:32px;font-weight:700;font-family:'Space Grotesk';margin:2px 0;">142
+                            </div>
+                            <div style="font-size:12px;color:var(--accent);">+12 cette semaine</div>
+                        </div>
+                        <div class="card stat-card" style="padding:18px;">
+                            <div class="stat-icon" style="background:var(--accent-bg);color:var(--accent-bright);"><i
+                                    class="fa-solid fa-clock"></i></div>
+                            <div
+                                style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;">
+                                En attente</div>
+                            <div style="font-size:32px;font-weight:700;font-family:'Space Grotesk';margin:2px 0;">23
+                            </div>
+                            <div style="font-size:12px;color:var(--accent-bright);">à assigner</div>
+                        </div>
+                        <div class="card stat-card" style="padding:18px;">
+                            <div class="stat-icon" style="background:var(--teal-bg);color:var(--teal);"><i
+                                    class="fa-solid fa-circle-check"></i></div>
+                            <div
+                                style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;">
+                                Résolues</div>
+                            <div style="font-size:32px;font-weight:700;font-family:'Space Grotesk';margin:2px 0;">98
+                            </div>
+                            <div style="font-size:12px;color:var(--teal);">69% de résolution</div>
+                        </div>
+                        <div class="card stat-card" style="padding:18px;">
+                            <div class="stat-icon" style="background:var(--rose-bg);color:var(--rose);"><i
+                                    class="fa-solid fa-stopwatch"></i></div>
+                            <div
+                                style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;">
+                                Temps moy.</div>
+                            <div style="font-size:32px;font-weight:700;font-family:'Space Grotesk';margin:2px 0;">3.2j
+                            </div>
+                            <div style="font-size:12px;color:var(--rose);">de résolution</div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-bottom:22px;"
+                        class="resp-chart">
+                        <div class="card" style="padding:22px;">
+                            <h3 style="font-size:14px;font-weight:600;margin-bottom:16px;">Réclamations par jour (30
+                                jours)</h3>
+                            <div class="chart-wrap" style="height:220px;"><canvas id="cLine"></canvas></div>
+                        </div>
+                        <div class="card" style="padding:22px;">
+                            <h3 style="font-size:14px;font-weight:600;margin-bottom:16px;">Par catégorie</h3>
+                            <div class="chart-wrap" style="height:220px;"><canvas id="cDn"></canvas></div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" class="resp-chart">
+                        <div class="card" style="padding:22px;">
+                            <h3 style="font-size:14px;font-weight:600;margin-bottom:16px;">Par statut</h3>
+                            <div class="chart-wrap" style="height:220px;"><canvas id="cBar"></canvas></div>
+                        </div>
+                        <div class="card" style="overflow:hidden;">
+                            <div style="padding:18px 22px;border-bottom:1px solid var(--border);">
+                                <h3 style="font-size:14px;font-weight:600;">Dernières réclamations</h3>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Ref.</th>
+                                            <th>Objet</th>
+                                            <th>Statut</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr onclick="go('sDet')">
+                                            <td
+                                                style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                                UR-0042</td>
+                                            <td style="color:var(--text-primary);">Climatisation salle 204</td>
+                                            <td><span class="badge badge-inprogress">En traitement</span></td>
+                                        </tr>
+                                        <tr onclick="go('sDet')">
+                                            <td
+                                                style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                                UR-0041</td>
+                                            <td style="color:var(--text-primary);">Projecteur HS amphi A2</td>
+                                            <td><span class="badge badge-pending">En attente</span></td>
+                                        </tr>
+                                        <tr onclick="go('sDet')">
+                                            <td
+                                                style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                                UR-0040</td>
+                                            <td style="color:var(--text-primary);">Accès refusé bibliothèque</td>
+                                            <td><span class="badge badge-assigned">Assignée</span></td>
+                                        </tr>
+                                        <tr onclick="go('sDet')">
+                                            <td
+                                                style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                                UR-0039</td>
+                                            <td style="color:var(--text-primary);">Retard inscription UE</td>
+                                            <td><span class="badge badge-assigned">Assignée</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN TICKETS -->
+            <div class="page" id="pageATick">
+                <div style="padding:26px 30px;">
+                    <div
+                        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <h2 style="font-size:22px;font-weight:700;margin-bottom:3px;">Toutes les réclamations</h2>
+                            <p style="color:var(--text-muted);font-size:14px;">Gestion de l'ensemble des tickets</p>
+                        </div>
+                        <div style="position:relative;"><i class="fa-solid fa-search"
+                                style="position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:12px;"></i><input
+                                type="text" class="input-field" placeholder="Rechercher..."
+                                style="padding-left:34px;width:200px;" id="aSrch" oninput="searchAT()"></div>
+                    </div>
+                    <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;">
+                        <button class="tab-btn active" onclick="filterAT(this,'all')">Toutes (142)</button>
+                        <button class="tab-btn" onclick="filterAT(this,'pending')">En attente (23)</button>
+                        <button class="tab-btn" onclick="filterAT(this,'assigned')">Assignées (18)</button>
+                        <button class="tab-btn" onclick="filterAT(this,'progress')">En cours (15)</button>
+                        <button class="tab-btn" onclick="filterAT(this,'resolved')">Résolues (86)</button>
+                    </div>
+                    <div class="card" style="overflow:hidden;">
+                        <div style="overflow-x:auto;">
+                            <table class="data-table" id="aTbl">
+                                <thead>
+                                    <tr>
+                                        <th>Ref.</th>
+                                        <th>Objet</th>
+                                        <th>Étudiant</th>
+                                        <th>Catégorie</th>
+                                        <th>Priorité</th>
+                                        <th>Statut</th>
+                                        <th>Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr data-s="UR-0042 climatisation panne salle 204 gloria kyemtore infrastructure"
+                                        data-b="en traitement">
+                                        <td style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                            UR-0042</td>
+                                        <td style="color:var(--text-primary);font-weight:500;">Climatisation en panne
+                                            salle 204</td>
+                                        <td>Gloria K.</td>
+                                        <td>Infrastructure</td>
+                                        <td><span class="badge badge-urgent">Urgente</span></td>
+                                        <td><span class="badge badge-inprogress">En traitement</span></td>
+                                        <td>14 juin</td>
+                                        <td><button class="btn btn-ghost btn-sm"
+                                                onclick="event.stopPropagation();go('sDet')"><i
+                                                    class="fa-solid fa-eye"></i></button> <button
+                                                class="btn btn-ghost btn-sm"
+                                                onclick="event.stopPropagation();showMod()"><i
+                                                    class="fa-solid fa-arrows-rotate"></i></button></td>
+                                    </tr>
+                                    <tr data-s="UR-0041 projecteur hs amphitheatre a2 oumar traore infrastructure"
+                                        data-b="en attente">
+                                        <td style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                            UR-0041</td>
+                                        <td style="color:var(--text-primary);font-weight:500;">Projecteur HS en
+                                            amphithéâtre A2</td>
+                                        <td>Oumar T.</td>
+                                        <td>Infrastructure</td>
+                                        <td><span class="badge badge-normal">Normale</span></td>
+                                        <td><span class="badge badge-pending">En attente</span></td>
+                                        <td>13 juin</td>
+                                        <td><button class="btn btn-ghost btn-sm"
+                                                onclick="event.stopPropagation();go('sDet')"><i
+                                                    class="fa-solid fa-eye"></i></button> <button
+                                                class="btn btn-ghost btn-sm"
+                                                onclick="event.stopPropagation();showMod()"><i
+                                                    class="fa-solid fa-arrows-rotate"></i></button></td>
+                                    </tr>
+                                    <tr data-s="UR-0040 acces refuse bibliotheque aminata dao scolarite"
+                                        data-b="assignée">
+                                        <td style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                            UR-0040</td>
+                                        <td style="color:var(--text-primary);font-weight:500;">Accès refusé à la
+                                            bibliothèque</td>
+                                        <td>Aminata D.</td>
+                                        <td>Scolarité</td>
+                                        <td><span class="badge badge-normal">Normale</span></td>
+                                        <td><span class="badge badge-assigned">Assignée</span></td>
+                                        <td>12 juin</td>
+                                        <td><button class="btn btn-ghost btn-sm"
+                                                onclick="event.stopPropagation();go('sDet')"><i
+                                                    class="fa-solid fa-eye"></i></button> <button
+                                                class="btn btn-ghost btn-sm"
+                                                onclick="event.stopPropagation();showMod()"><i
+                                                    class="fa-solid fa-arrows-rotate"></i></button></td>
+                                    </tr>
+                                    <tr data-s="UR-0039 retard inscription ue complementaire gloria kyemtore scolarite"
+                                        data-b="assignée">
+                                        <td style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                            UR-0039</td>
+                                        <td style="color:var(--text-primary);font-weight:500;">Retard inscription UE
+                                            Complémentaire</td>
+                                        <td>Gloria K.</td>
+                                        <td>Scolarité</td>
+                                        <td><span class="badge badge-normal">Normale</span></td>
+                                        <td><span class="badge badge-assigned">Assignée</span></td>
+                                        <td>10 juin</td>
+                                        <td><button class="btn btn-ghost btn-sm"
+                                                onclick="event.stopPropagation();go('sDet')"><i
+                                                    class="fa-solid fa-eye"></i></button> <button
+                                                class="btn btn-ghost btn-sm"
+                                                onclick="event.stopPropagation();showMod()"><i
+                                                    class="fa-solid fa-arrows-rotate"></i></button></td>
+                                    </tr>
+                                    <tr data-s="UR-0038 wifi instable batiment a burkina ouedraogo numerique"
+                                        data-b="résolue">
+                                        <td style="font-family:'Space Grotesk';font-weight:700;color:var(--accent);">
+                                            UR-0038</td>
+                                        <td style="color:var(--text-primary);font-weight:500;">WiFi instable au bâtiment
+                                            A</td>
+                                        <td>Burkina O.</td>
+                                        <td>Numérique</td>
+                                        <td><span class="badge badge-normal">Normale</span></td>
+                                        <td><span class="badge badge-resolved">Résolue</span></td>
+                                        <td>8 juin</td>
+                                        <td><button class="btn btn-ghost btn-sm"
+                                                onclick="event.stopPropagation();go('sDet')"><i
+                                                    class="fa-solid fa-eye"></i></button> <button
+                                                class="btn btn-ghost btn-sm"
+                                                onclick="event.stopPropagation();showMod()"><i
+                                                    class="fa-solid fa-arrows-rotate"></i></button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADMIN UTILISATEURS -->
+            <div class="page" id="pageAUsr">
+                <div style="padding:26px 30px;">
+                    <div style="margin-bottom:22px;">
+                        <h2 style="font-size:22px;font-weight:700;margin-bottom:3px;">Utilisateurs</h2>
+                        <p style="color:var(--text-muted);font-size:14px;">Gestion des comptes</p>
+                    </div>
+                    <div class="card" style="overflow:hidden;">
+                        <div style="overflow-x:auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Utilisateur</th>
+                                        <th>Email</th>
+                                        <th>Rôle</th>
+                                        <th>Département</th>
+                                        <th>Tickets</th>
+                                        <th>Statut</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div style="display:flex;align-items:center;gap:9px;">
+                                                <div class="avatar"
+                                                    style="background:var(--accent-bg);color:var(--accent);width:30px;height:30px;font-size:10px;">
+                                                    GK</div><span
+                                                    style="font-weight:600;color:var(--text-primary);">Gloria
+                                                    Kyemtore</span>
+                                            </div>
+                                        </td>
+                                        <td>gloria.kyemtore@univ.bf</td>
+                                        <td><span class="badge badge-role-student">Étudiant</span></td>
+                                        <td>Informatique L2</td>
+                                        <td style="font-weight:600;">7</td>
+                                        <td style="color:var(--teal);">Actif</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="display:flex;align-items:center;gap:9px;">
+                                                <div class="avatar"
+                                                    style="background:var(--violet-bg);color:var(--violet);width:30px;height:30px;font-size:10px;">
+                                                    AO</div><span
+                                                    style="font-weight:600;color:var(--text-primary);">Akram
+                                                    Ouedraogo</span>
+                                            </div>
+                                        </td>
+                                        <td>akram.ouedraogo@univ.bf</td>
+                                        <td><span class="badge badge-role-admin">Admin</span></td>
+                                        <td>—</td>
+                                        <td style="font-weight:600;">0</td>
+                                        <td style="color:var(--teal);">Actif</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="display:flex;align-items:center;gap:9px;">
+                                                <div class="avatar"
+                                                    style="background:var(--sky-bg);color:var(--sky);width:30px;height:30px;font-size:10px;">
+                                                    OT</div><span
+                                                    style="font-weight:600;color:var(--text-primary);">Oumar
+                                                    Traoré</span>
+                                            </div>
+                                        </td>
+                                        <td>oumar.traore@univ.bf</td>
+                                        <td><span class="badge badge-role-student">Étudiant</span></td>
+                                        <td>Génie Civil L3</td>
+                                        <td style="font-weight:600;">3</td>
+                                        <td style="color:var(--teal);">Actif</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="display:flex;align-items:center;gap:9px;">
+                                                <div class="avatar"
+                                                    style="background:var(--rose-bg);color:var(--rose);width:30px;height:30px;font-size:10px;">
+                                                    AD</div><span
+                                                    style="font-weight:600;color:var(--text-primary);">Aminata
+                                                    Dao</span>
+                                            </div>
+                                        </td>
+                                        <td>aminata.dao@univ.bf</td>
+                                        <td><span class="badge badge-role-student">Étudiant</span></td>
+                                        <td>Droit L1</td>
+                                        <td style="font-weight:600;">2</td>
+                                        <td style="color:var(--teal);">Actif</td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div style="display:flex;align-items:center;gap:9px;">
+                                                <div class="avatar"
+                                                    style="background:var(--sky-bg);color:var(--sky);width:30px;height:30px;font-size:10px;">
+                                                    TK</div><span style="font-weight:600;color:var(--text-primary);">T.
+                                                    Kaboré</span>
+                                            </div>
+                                        </td>
+                                        <td>t.kabore@univ.bf</td>
+                                        <td><span class="badge badge-role-tech">Technicien</span></td>
+                                        <td>Service Technique</td>
+                                        <td style="font-weight:600;">—</td>
+                                        <td style="color:var(--teal);">Actif</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL STATUT -->
+    <div class="modal-overlay" id="stMod">
+        <div class="modal-box">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                <h3 style="font-size:17px;font-weight:700;">Changer le statut</h3><button class="btn btn-ghost"
+                    onclick="closeMod()" style="padding:4px 7px;"><i class="fa-solid fa-xmark"
+                        style="font-size:17px;"></i></button>
+            </div>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:18px;">Ticket <strong
+                    style="color:var(--accent);">UR-0042</strong> — Actuellement : <span
+                    class="badge badge-inprogress">En traitement</span></p>
+            <div style="margin-bottom:18px;"><label
+                    style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;">Nouveau
+                    statut</label><select class="input-field" id="newSt">
+                    <option value="pending">En attente</option>
+                    <option value="assigned">Assigné</option>
+                    <option value="inprogress" selected>En traitement</option>
+                    <option value="resolved">Résolu</option>
+                    <option value="closed">Fermé</option>
+                </select></div>
+            <div style="margin-bottom:20px;"><label
+                    style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:5px;">Commentaire</label><textarea
+                    class="input-field" placeholder="Raison du changement..." style="min-height:70px;"></textarea></div>
+            <div style="display:flex;gap:10px;justify-content:flex-end;"><button class="btn btn-secondary"
+                    onclick="closeMod()">Annuler</button><button class="btn btn-primary" onclick="changeSt()"><i
+                        class="fa-solid fa-check"></i>Confirmer</button></div>
+        </div>
+    </div>
+
+    <script>
+        const S = { user: null, role: null, page: null, charts: {} };
+        const PM = { landing: 'pageLanding', login: 'pageLogin', sDash: 'pageSDash', sNew: 'pageSNew', sList: 'pageSList', sDet: 'pageSDet', sProf: 'pageSProf', aDash: 'pageADash', aTick: 'pageATick', aUsr: 'pageAUsr' };
+        const PT = { landing: 'Accueil', login: 'Connexion', sDash: 'Tableau de bord', sNew: 'Nouvelle réclamation', sList: 'Mes réclamations', sDet: 'Détail UR-0042', sProf: 'Mon profil', aDash: 'Tableau de bord Admin', aTick: 'Toutes les réclamations', aUsr: 'Utilisateurs' };
+
+        function go(p) {
+            document.querySelectorAll('.page').forEach(e => e.classList.remove('active'));
+            const id = PM[p]; if (id) document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            const al = document.querySelector(`.sidebar-link[data-page="${p}"]`);
+            if (al) al.classList.add('active');
+            const tt = document.getElementById('topT');
+            if (tt) tt.textContent = PT[p] || 'U-Report';
+            S.page = p;
+            if (p === 'aDash') setTimeout(buildCharts, 120);
+            closeSB();
+            window.scrollTo(0, 0);
+        }
+
+        // Scroll reveal pour la landing
+        const revObs = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.15 });
+        document.addEventListener('DOMContentLoaded', () => { document.querySelectorAll('.reveal').forEach(el => revObs.observe(el)); });
+
+        // Nav shadow au scroll
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('landingNav');
+            if (nav) nav.classList.toggle('scrolled', window.scrollY > 20);
+        });
+
+        function handleLogin() {
+            const role = document.getElementById('loginRole').value;
+            S.role = role;
+            S.user = role === 'etudiant' ? { name: 'Gloria Kyemtore', ini: 'GK', role: 'Étudiant' } : { name: 'Akram Ouedraogo', ini: 'AO', role: 'Administrateur' };
+            document.getElementById('sbNm').textContent = S.user.name;
+            document.getElementById('sbRl').textContent = S.user.role;
+            document.getElementById('sbAv').textContent = S.user.ini;
+            document.getElementById('topAv').textContent = S.user.ini;
+            document.getElementById('navEtu').style.display = role === 'etudiant' ? 'block' : 'none';
+            document.getElementById('navAdm').style.display = role === 'admin' ? 'block' : 'none';
+            document.getElementById('pageLogin').classList.remove('active');
+            document.getElementById('appLayout').style.display = 'block';
+            go(role === 'etudiant' ? 'sDash' : 'aDash');
+            showToast('Bienvenue, ' + S.user.name, 'success');
+        }
+
+        function handleLogout() {
+            document.getElementById('appLayout').style.display = 'none';
+            Object.values(S.charts).forEach(c => { if (c && c.destroy) c.destroy(); });
+            S.charts = {}; S.user = null; S.role = null;
+            go('landing');
+            showToast('Déconnexion réussie', 'info');
+        }
+
+        function togglePwd() { const i = document.getElementById('loginPassword'), ic = document.getElementById('eyeIcon'); if (i.type === 'password') { i.type = 'text'; ic.classList.replace('fa-eye', 'fa-eye-slash'); } else { i.type = 'password'; ic.classList.replace('fa-eye-slash', 'fa-eye'); } }
+        function toggleSB() { document.getElementById('sidebar').classList.toggle('open'); document.getElementById('sidebarOverlay').classList.toggle('show'); }
+        function closeSB() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('show'); }
+
+        function submitT(e) { e.preventDefault(); const s = document.getElementById('tSubj').value; if (!s) { showToast('Remplissez tous les champs obligatoires', 'error'); return; } showToast('Réclamation "' + s + '" déposée avec succès', 'success'); document.getElementById('tForm').reset(); setTimeout(() => go('sList'), 1200); }
+
+        function filterT(btn, st) { btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); document.querySelectorAll('#tList .card').forEach(c => { c.style.display = (st === 'all' || c.dataset.st === st) ? 'block' : 'none'; }); }
+        function filterAT(btn, st) { btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); const m = { pending: 'en attente', assigned: 'assignée', progress: 'en traitement', resolved: 'résolue' }; document.querySelectorAll('#aTbl tbody tr').forEach(r => { if (st === 'all') { r.style.display = ''; return; } r.style.display = (r.dataset.b === m[st]) ? '' : 'none'; }); }
+        function searchAT() { const q = document.getElementById('aSrch').value.toLowerCase(); document.querySelectorAll('#aTbl tbody tr').forEach(r => { r.style.display = (r.dataset.s || '').includes(q) ? '' : 'none'; }); }
+
+        function showMod() { document.getElementById('stMod').classList.add('show'); }
+        function closeMod() { document.getElementById('stMod').classList.remove('show'); }
+        function changeSt() { const n = { pending: 'En attente', assigned: 'Assigné', inprogress: 'En traitement', resolved: 'Résolu', closed: 'Fermé' }; showToast('Statut mis à jour : ' + n[document.getElementById('newSt').value], 'success'); closeMod(); }
+        document.getElementById('stMod').addEventListener('click', function (e) { if (e.target === this) closeMod(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMod(); });
+
+        function sendMsg() { const inp = document.getElementById('msgI'), txt = inp.value.trim(); if (!txt) return; const c = document.getElementById('msgC'), now = new Date(), ts = `${now.getDate()} juin, ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`; c.insertAdjacentHTML('beforeend', `<div style="display:flex;gap:9px;align-items:flex-start;flex-direction:row-reverse;animation:fadeUp 0.25s ease;"><div class="avatar" style="background:var(--accent-bg);color:var(--accent);width:30px;height:30px;font-size:10px;">${S.user.ini}</div><div style="text-align:right;"><div style="font-size:11px;font-weight:600;margin-bottom:3px;"><span style="font-weight:400;color:var(--text-muted);">Vous — </span>${ts}</div><div class="message-bubble sent">${txt.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div><div class="message-time" style="text-align:right;">${ts}</div></div></div>`); c.scrollTop = c.scrollHeight; inp.value = ''; setTimeout(() => { const rp = ["Bien noté, nous traitons votre demande.", "Merci, le technicien est informé.", "Nous vous tiendrons au courant.", "Intervention programmée."], r = rp[Math.floor(Math.random() * rp.length)], rt = new Date(), rts = `${rt.getDate()} juin, ${String(rt.getHours()).padStart(2, '0')}:${String(rt.getMinutes()).padStart(2, '0')}`; c.insertAdjacentHTML('beforeend', `<div style="display:flex;gap:9px;align-items:flex-start;animation:fadeUp 0.25s ease;"><div class="avatar" style="background:var(--sky-bg);color:var(--sky);width:30px;height:30px;font-size:10px;">TK</div><div><div style="font-size:11px;font-weight:600;margin-bottom:3px;">T. Kaboré <span style="color:var(--text-muted);font-weight:400;">— Technicien</span></div><div class="message-bubble received">${r}</div><div class="message-time">${rts}</div></div></div>`); c.scrollTop = c.scrollHeight; }, 1800 + Math.random() * 2000); }
+
+        function showToast(msg, type) { const ic = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' }, t = document.createElement('div'); t.className = 'toast toast-' + type; t.innerHTML = `<i class="fa-solid ${ic[type] || ic.info}"></i> ${msg}`; document.getElementById('toastContainer').appendChild(t); setTimeout(() => { if (t.parentNode) t.remove(); }, 4200); }
+
+        function buildCharts() {
+            Object.values(S.charts).forEach(c => { if (c && c.destroy) c.destroy(); }); S.charts = {};
+            Chart.defaults.color = '#6b7280'; Chart.defaults.borderColor = 'rgba(229,231,235,0.8)'; Chart.defaults.font.family = "'DM Sans',sans-serif"; Chart.defaults.font.size = 11;
+            const am = '#e8890c', amF = 'rgba(232,137,12,0.1)', tl = '#0d9488', tlF = 'rgba(13,148,136,0.08)', sk = '#0284c7', skF = 'rgba(2,132,199,0.08)', vi = '#7c3aed', viF = 'rgba(124,58,237,0.08)', rs = '#e11d48', rsF = 'rgba(225,29,72,0.08)', sl = '#64748b', slF = 'rgba(100,116,139,0.06)';
+
+            const cL = document.getElementById('cLine');
+            if (cL && cL.offsetParent !== null) { const lb = [], d1 = [], d2 = []; for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); lb.push(d.getDate() + '/' + (d.getMonth() + 1)); d1.push(Math.floor(Math.random() * 6) + 2); d2.push(Math.floor(Math.random() * 4) + 1); } S.charts.line = new Chart(cL, { type: 'line', data: { labels: lb, datasets: [{ label: 'Nouveaux', data: d1, borderColor: am, backgroundColor: amF, fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2 }, { label: 'Résolus', data: d2, borderColor: tl, backgroundColor: tlF, fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 4, borderWidth: 2 }] }, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top', labels: { boxWidth: 10, padding: 14, usePointStyle: true, pointStyle: 'circle' } } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }, y: { beginAtZero: true, grid: { color: 'rgba(229,231,235,0.6)' }, ticks: { stepSize: 2 } } } } }); }
+
+            const cD = document.getElementById('cDn');
+            if (cD && cD.offsetParent !== null) { S.charts.dn = new Chart(cD, { type: 'doughnut', data: { labels: ['Infrastructure', 'Scolarité', 'Enseignement', 'Numérique', 'Autres'], datasets: [{ data: [48, 35, 22, 25, 12], backgroundColor: [am, sk, vi, tl, sl], borderColor: '#fff', borderWidth: 3, hoverOffset: 6 }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 8, padding: 10, usePointStyle: true, pointStyle: 'circle' } } } } }); }
+
+            const cB = document.getElementById('cBar');
+            if (cB && cB.offsetParent !== null) { S.charts.bar = new Chart(cB, { type: 'bar', data: { labels: ['En attente', 'Assignées', 'En cours', 'Résolues', 'Fermées'], datasets: [{ label: 'Tickets', data: [23, 18, 15, 68, 18], backgroundColor: [amF, skF, viF, tlF, slF], borderColor: [am, sk, vi, tl, sl], borderWidth: 1.5, borderRadius: 6, maxBarThickness: 44 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { beginAtZero: true, grid: { color: 'rgba(229,231,235,0.6)' }, ticks: { stepSize: 20 } } } } }); }
+        }
+    </script>
+</body>
+
+</html>
