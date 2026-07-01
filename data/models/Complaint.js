@@ -20,6 +20,9 @@ const complaintSchema = new mongoose.Schema(
     statut: { type: String, enum: Object.values(STATUSES), default: STATUSES.NOUVEAU },
     auteurId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     messages: [messageSchema],
+    // Notifications : reste "non lu" jusqu'a ce que la personne concernee ouvre la reclamation
+    nonLuEtudiant: { type: Boolean, default: false },
+    nonLuAdmin: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

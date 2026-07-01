@@ -65,6 +65,9 @@ const store = {
   },
   addMessage: async (complaint, { auteurId, role, texte }) => {
     complaint.messages.push({ auteurId, role, texte });
+    // Notifie l'autre partie (etudiant <-> admin) qu'il y a une nouvelle activite
+    if (role === ROLES.ADMIN) complaint.nonLuEtudiant = true;
+    else complaint.nonLuAdmin = true;
     await complaint.save();
     return complaint.messages[complaint.messages.length - 1];
   },
@@ -72,9 +75,19 @@ const store = {
     const allowed = STATUS_FLOW[complaint.statut] || [];
     if (!allowed.includes(nextStatus)) return false;
     complaint.statut = nextStatus;
+    complaint.nonLuEtudiant = true;
     await complaint.save();
     return true;
   },
+  markAsRead: async (complaint, role) => {
+    if (role === ROLES.ADMIN) complaint.nonLuAdmin = false;
+    else complaint.nonLuEtudiant = false;
+    await complaint.save();
+  },
+  unreadCount: (user) =>
+    user.role === ROLES.ADMIN
+      ? Complaint.countDocuments({ nonLuAdmin: true })
+      : Complaint.countDocuments({ auteurId: user.id, nonLuEtudiant: true }),
 
   // Statistiques (pour le dashboard admin / Chart.js)
   stats: async () => {

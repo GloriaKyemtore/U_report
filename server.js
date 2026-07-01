@@ -34,14 +34,15 @@ app.use(
 app.use(flash());
 
 // Variables disponibles dans toutes les vues
-app.use((req, res, next) => {
+app.use(asyncHandler(async (req, res, next) => {
   res.locals.currentUser = req.session.user || null;
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.STATUS_BADGE = store.STATUS_BADGE;
   res.locals.ROLES = store.ROLES;
+  res.locals.unreadCount = req.session.user ? await store.unreadCount(req.session.user) : 0;
   next();
-});
+}));
 
 // --- Middlewares d authentification / RBAC ----------------------------------
 function requireAuth(req, res, next) {
@@ -218,6 +219,7 @@ app.get('/reclamations/:id', requireAuth, asyncHandler(async (req, res) => {
     req.flash('error', "Vous n'avez pas accès à cette réclamation.");
     return res.redirect('/dashboard');
   }
+  await store.markAsRead(complaint, user.role);
 
   // Resout les auteurs (reclamation + messages) une fois, pour un lookup synchrone dans la vue
   const authorIds = [...new Set([complaint.auteurId, ...complaint.messages.map((m) => m.auteurId)].map(String))];
