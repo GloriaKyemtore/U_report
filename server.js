@@ -60,6 +60,14 @@ function requireAdmin(req, res, next) {
   next();
 }
 
+function requireEtudiant(req, res, next) {
+  if (req.session.user.role === store.ROLES.ADMIN) {
+    req.flash('error', "L'administration traite les réclamations mais n'en dépose pas.");
+    return res.redirect('/dashboard');
+  }
+  next();
+}
+
 // --- Helper : formatage de date ---------------------------------------------
 app.locals.formatDate = (d) =>
   new Date(d).toLocaleDateString('fr-FR', {
@@ -178,14 +186,14 @@ app.get('/dashboard', requireAuth, asyncHandler(async (req, res) => {
 }));
 
 // --- Reclamations -----------------------------------------------------------
-app.get('/reclamations/nouvelle', requireAuth, (req, res) => {
+app.get('/reclamations/nouvelle', requireAuth, requireEtudiant, (req, res) => {
   res.render('complaints/new', {
     categories: store.CATEGORIES,
     priorities: store.PRIORITIES,
   });
 });
 
-app.post('/reclamations', requireAuth, asyncHandler(async (req, res) => {
+app.post('/reclamations', requireAuth, requireEtudiant, asyncHandler(async (req, res) => {
   const { titre, description, categorie, priorite } = req.body;
   if (!titre || !description) {
     req.flash('error', 'Le titre et la description sont obligatoires.');

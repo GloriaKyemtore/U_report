@@ -1,3 +1,4 @@
 node_modules/
 .env
+.assistant-config/
 .claude/

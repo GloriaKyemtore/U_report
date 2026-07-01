@@ -5,7 +5,7 @@
 <section class="hero">
   <div class="container py-5">
     <div class="row align-items-center g-4">
-      <div class="col-lg-7">
+      <div class="col-lg-7 hero-anim">
         <span class="eyebrow">Université &bull; Réclamations en ligne</span>
         <h1 class="display-5 fw-bold my-3">Faites entendre votre voix.</h1>
         <p class="lead mb-4">
@@ -14,9 +14,11 @@
           et échangez avec l'administration.
         </p>
         <div class="d-flex flex-wrap gap-2">
-          <% if (currentUser) { %>
+          <% if (currentUser && currentUser.role !== ROLES.ADMIN) { %>
             <a href="/reclamations/nouvelle" class="btn btn-primary btn-lg"><i class="bi bi-plus-circle me-1"></i>Déposer une réclamation</a>
             <a href="/dashboard" class="btn btn-outline-primary btn-lg">Mon tableau de bord</a>
+          <% } else if (currentUser) { %>
+            <a href="/dashboard" class="btn btn-primary btn-lg">Mon tableau de bord</a>
           <% } else { %>
             <a href="/register" class="btn btn-primary btn-lg">Créer un compte</a>
             <a href="/login" class="btn btn-outline-primary btn-lg">Se connecter</a>
@@ -24,7 +26,7 @@
         </div>
       </div>
       <div class="col-lg-5">
-        <div class="row g-3">
+        <div class="row g-3 hero-anim">
           <div class="col-6"><div class="stat-card"><div class="stat-num"><%= stats.total %></div><div class="stat-label">Réclamations</div></div></div>
           <div class="col-6"><div class="stat-card"><div class="stat-num"><%= stats.ouverts %></div><div class="stat-label">En traitement</div></div></div>
           <div class="col-6"><div class="stat-card"><div class="stat-num"><%= stats.resolus %></div><div class="stat-label">Résolues</div></div></div>

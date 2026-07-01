@@ -58,7 +58,9 @@ a { color: var(--ur-primary); }
   border-radius: 10px;
   padding: 1.1rem;
   text-align: center;
+  transition: transform .15s ease, box-shadow .15s ease;
 }
+.stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(13, 79, 139, .08); }
 .stat-num { font-size: 2rem; font-weight: 700; line-height: 1; color: var(--ur-primary); }
 .stat-label { font-size: .8rem; color: #6c7a8d; margin-top: .25rem; }
 
@@ -75,7 +77,9 @@ a { color: var(--ur-primary); }
   width: 56px; height: 56px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   font-size: 1.6rem; margin-bottom: 1rem;
+  transition: transform .2s ease;
 }
+.feature-card:hover .feature-icon { transform: scale(1.1) rotate(-4deg); }
 
 /* Categories */
 .category-pill {
@@ -85,9 +89,18 @@ a { color: var(--ur-primary); }
   padding: .9rem 1rem;
   font-weight: 500;
   color: #33475b;
-  transition: border-color .15s ease, color .15s ease;
+  transition: border-color .15s ease, color .15s ease, transform .15s ease;
 }
-.category-pill:hover { border-color: var(--ur-primary); color: var(--ur-primary); }
+.category-pill:hover { border-color: var(--ur-primary); color: var(--ur-primary); transform: translateY(-3px); }
+
+/* Boutons : leger effet de survol */
+.btn-primary, .btn-outline-primary, .btn-lg {
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.btn-primary:hover, .btn-outline-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(13, 79, 139, .15);
+}
 
 /* Trust section */
 .trust-section {
@@ -122,7 +135,7 @@ a { color: var(--ur-primary); }
   border-left-color: var(--ur-primary);
 }
 
-/* Scroll reveal */
+/* Scroll reveal, avec cascade selon la position dans la rangee */
 .reveal {
   opacity: 0;
   transform: translateY(24px);
@@ -132,6 +145,26 @@ a { color: var(--ur-primary); }
   opacity: 1;
   transform: translateY(0);
 }
+.row > div:nth-child(1) .reveal { transition-delay: 0s; }
+.row > div:nth-child(2) .reveal { transition-delay: .1s; }
+.row > div:nth-child(3) .reveal { transition-delay: .2s; }
+.row > div:nth-child(4) .reveal { transition-delay: .3s; }
+
+/* Animation d'entree du hero, au chargement de la page (pas besoin de scroller) */
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.hero-anim > * {
+  opacity: 0;
+  animation: heroFadeUp .6s ease forwards;
+}
+.hero-anim > *:nth-child(1) { animation-delay: .05s; }
+.hero-anim > *:nth-child(2) { animation-delay: .15s; }
+.hero-anim > *:nth-child(3) { animation-delay: .25s; }
+.hero-anim > *:nth-child(4) { animation-delay: .35s; }
+
 @media (prefers-reduced-motion: reduce) {
   .reveal { opacity: 1; transform: none; transition: none; }
+  .hero-anim > * { opacity: 1; animation: none; }
 }
