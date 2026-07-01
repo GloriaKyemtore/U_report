@@ -1,0 +1,137 @@
+:root {
+  --ur-primary: #0d4f8b;
+  --ur-primary-dark: #08325a;
+  --ur-accent: #c9a227;
+  --ur-bg: #f7f9fb;
+  --ur-border: #e3e8ee;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #212529;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+body > footer { margin-top: auto; }
+
+a { color: var(--ur-primary); }
+
+/* Navbar institutionnelle */
+.navbar-institution {
+  background: #ffffff;
+  border-bottom: 1px solid var(--ur-border);
+}
+.navbar-institution .navbar-brand {
+  color: var(--ur-primary-dark);
+}
+.navbar-institution .nav-link {
+  color: #33475b;
+}
+.navbar-institution .nav-link:hover {
+  color: var(--ur-primary);
+}
+
+/* Hero institutionnel */
+.hero {
+  background: var(--ur-bg);
+  border-bottom: 1px solid var(--ur-border);
+}
+.hero .eyebrow {
+  color: var(--ur-primary);
+  font-weight: 600;
+  letter-spacing: .4px;
+  font-size: .85rem;
+  text-transform: uppercase;
+}
+.hero h1 {
+  color: var(--ur-primary-dark);
+}
+.hero .lead {
+  color: #445267;
+}
+
+.stat-card {
+  background: #fff;
+  border: 1px solid var(--ur-border);
+  border-radius: 10px;
+  padding: 1.1rem;
+  text-align: center;
+}
+.stat-num { font-size: 2rem; font-weight: 700; line-height: 1; color: var(--ur-primary); }
+.stat-label { font-size: .8rem; color: #6c7a8d; margin-top: .25rem; }
+
+/* Feature cards */
+.feature-card {
+  background: #fff;
+  border: 1px solid var(--ur-border);
+  border-radius: 12px;
+  padding: 1.75rem;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.feature-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(13, 79, 139, .08); }
+.feature-icon {
+  width: 56px; height: 56px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; margin-bottom: 1rem;
+}
+
+/* Categories */
+.category-pill {
+  background: #fff;
+  border: 1px solid var(--ur-border);
+  border-radius: 10px;
+  padding: .9rem 1rem;
+  font-weight: 500;
+  color: #33475b;
+  transition: border-color .15s ease, color .15s ease;
+}
+.category-pill:hover { border-color: var(--ur-primary); color: var(--ur-primary); }
+
+/* Trust section */
+.trust-section {
+  background: var(--ur-primary-dark);
+  color: #fff;
+}
+.trust-item i { color: var(--ur-accent); }
+
+/* KPIs (dashboard) */
+.kpi { border-radius: 14px; padding: 1.25rem; color: #fff; }
+.kpi-num { font-size: 2rem; font-weight: 700; line-height: 1; }
+.kpi-label { font-size: .8rem; opacity: .9; margin-top: .3rem; text-transform: uppercase; letter-spacing: .4px; }
+.kpi-primary { background: linear-gradient(135deg, #0d4f8b, #3d8bfd); }
+.kpi-warning { background: linear-gradient(135deg, #f39c12, #f7b733); }
+.kpi-success { background: linear-gradient(135deg, #198754, #20c997); }
+.kpi-dark    { background: linear-gradient(135deg, #08325a, #33475b); }
+
+/* Ticket cards */
+.ticket-card { transition: transform .12s ease, box-shadow .12s ease; }
+.ticket-card:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(0, 0, 0, .08); }
+
+/* Messages (fil de discussion) */
+.message {
+  background: #f5f7fa;
+  border-radius: 12px;
+  padding: .9rem 1.1rem;
+  margin-bottom: .75rem;
+  border-left: 4px solid #ced4da;
+}
+.message-admin {
+  background: #eef5ff;
+  border-left-color: var(--ur-primary);
+}
+
+/* Scroll reveal */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}

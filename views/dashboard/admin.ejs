@@ -1,0 +1,91 @@
+<%- include('../partials/head', { title: 'Administration' }) %>
+<%- include('../partials/navbar') %>
+
+<div class="container py-4">
+  <h3 class="fw-bold mb-1">Tableau de bord - Administration</h3>
+  <p class="text-muted mb-4">Vue d'ensemble de toutes les réclamations.</p>
+
+  <!-- KPIs -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="kpi kpi-primary"><div class="kpi-num"><%= stats.total %></div><div class="kpi-label">Total</div></div></div>
+    <div class="col-6 col-lg-3"><div class="kpi kpi-warning"><div class="kpi-num"><%= stats.ouverts %></div><div class="kpi-label">En traitement</div></div></div>
+    <div class="col-6 col-lg-3"><div class="kpi kpi-success"><div class="kpi-num"><%= stats.resolus %></div><div class="kpi-label">Résolues / Fermées</div></div></div>
+    <div class="col-6 col-lg-3"><div class="kpi kpi-dark"><div class="kpi-num"><%= stats.utilisateurs %></div><div class="kpi-label">Utilisateurs</div></div></div>
+  </div>
+
+  <!-- Graphiques Chart.js -->
+  <div class="row g-4 mb-4">
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">Réclamations par statut</h6>
+          <div style="height: 260px;"><canvas id="chartStatus"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-body">
+          <h6 class="fw-bold mb-3">Réclamations par catégorie</h6>
+          <div style="height: 260px;"><canvas id="chartCategory"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="card shadow-sm border-0">
+    <div class="card-body">
+      <h6 class="fw-bold mb-3">Toutes les réclamations</h6>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle">
+          <thead class="table-light">
+            <tr><th>Réf</th><th>Titre</th><th>Catégorie</th><th>Priorité</th><th>Statut</th><th>Date</th><th></th></tr>
+          </thead>
+          <tbody>
+            <% complaints.forEach(function(c){ %>
+              <tr>
+                <td class="text-muted small"><%= c.ref %></td>
+                <td class="fw-semibold"><%= c.titre %></td>
+                <td><%= c.categorie %></td>
+                <td><%= c.priorite %></td>
+                <td><span class="badge <%= STATUS_BADGE[c.statut] %>"><%= c.statut %></span></td>
+                <td class="small text-muted"><%= formatDate(c.createdAt) %></td>
+                <td><a href="/reclamations/<%= c.id %>" class="btn btn-sm btn-outline-primary">Ouvrir</a></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%
+  var statusLabels = Object.keys(stats.byStatus);
+  var statusData = statusLabels.map(function(k){ return stats.byStatus[k]; });
+  var catLabels = Object.keys(stats.byCategory);
+  var catData = catLabels.map(function(k){ return stats.byCategory[k]; });
+%>
+<%- include('../partials/footer', { scripts: `
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script>
+    new Chart(document.getElementById('chartStatus'), {
+      type: 'doughnut',
+      data: {
+        labels: ${JSON.stringify(statusLabels)},
+        datasets: [{ data: ${JSON.stringify(statusData)},
+          backgroundColor: ['#6c757d','#0d6efd','#198754','#212529','#dc3545'] }]
+      },
+      options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+    new Chart(document.getElementById('chartCategory'), {
+      type: 'bar',
+      data: {
+        labels: ${JSON.stringify(catLabels)},
+        datasets: [{ label: 'Reclamations', data: ${JSON.stringify(catData)}, backgroundColor: '#0d6efd' }]
+      },
+      options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { precision: 0 } } } }
+    });
+  </script>
+` }) %>

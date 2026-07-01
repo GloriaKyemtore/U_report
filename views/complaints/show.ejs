@@ -1,0 +1,106 @@
+<%- include('../partials/head', { title: complaint.ref }) %>
+<%- include('../partials/navbar') %>
+
+<div class="container py-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb small">
+      <li class="breadcrumb-item"><a href="/dashboard">Tableau de bord</a></li>
+      <li class="breadcrumb-item active"><%= complaint.ref %></li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    <!-- Detail -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body p-4">
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+            <div>
+              <span class="text-muted small"><%= complaint.ref %></span>
+              <h3 class="fw-bold mb-1"><%= complaint.titre %></h3>
+            </div>
+            <span class="badge <%= STATUS_BADGE[complaint.statut] %> fs-6"><%= complaint.statut %></span>
+          </div>
+          <div class="d-flex flex-wrap gap-3 text-muted small my-3">
+            <span><i class="bi bi-tag me-1"></i><%= complaint.categorie %></span>
+            <span><i class="bi bi-flag me-1"></i>Priorité : <%= complaint.priorite %></span>
+            <span><i class="bi bi-person me-1"></i><%= auteur ? auteur.nom : 'Inconnu' %></span>
+            <span><i class="bi bi-clock me-1"></i><%= formatDate(complaint.createdAt) %></span>
+          </div>
+          <p class="mb-0" style="white-space: pre-line;"><%= complaint.description %></p>
+        </div>
+      </div>
+
+      <!-- Fil de discussion (messages) -->
+      <h5 class="fw-bold mb-3"><i class="bi bi-chat-dots me-1"></i>Fil de discussion <span class="text-muted">(<%= complaint.messages.length %>)</span></h5>
+      <% if (complaint.messages.length === 0) { %>
+        <p class="text-muted fst-italic">Aucun message pour le moment. Démarrez la conversation ci-dessous.</p>
+      <% } %>
+      <div class="mb-4">
+        <% complaint.messages.forEach(function(m){ var mu = findUser(m.auteurId); var admin = m.role === ROLES.ADMIN; %>
+          <div class="message <%= admin ? 'message-admin' : '' %>">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-semibold">
+                <i class="bi <%= admin ? 'bi-shield-check text-primary' : 'bi-person-circle' %> me-1"></i>
+                <%= mu ? mu.nom : 'Utilisateur' %>
+                <% if (admin) { %><span class="badge bg-primary ms-1">Administration</span><% } %>
+              </span>
+              <span class="text-muted small"><%= formatDate(m.createdAt) %></span>
+            </div>
+            <div style="white-space: pre-line;"><%= m.texte %></div>
+          </div>
+        <% }); %>
+      </div>
+
+      <div class="card shadow-sm border-0">
+        <div class="card-body">
+          <form action="/reclamations/<%= complaint.id %>/messages" method="POST">
+            <label class="form-label fw-semibold">Ajouter un message</label>
+            <textarea name="texte" class="form-control mb-2" rows="3" required placeholder="Votre message..."></textarea>
+            <button class="btn btn-primary"><i class="bi bi-send me-1"></i>Envoyer</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panneau lateral -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+          <h6 class="fw-bold text-uppercase text-muted small mb-3">Informations</h6>
+          <ul class="list-unstyled small mb-0">
+            <li class="d-flex justify-content-between py-1"><span class="text-muted">Reference</span><span class="fw-semibold"><%= complaint.ref %></span></li>
+            <li class="d-flex justify-content-between py-1"><span class="text-muted">Statut</span><span class="badge <%= STATUS_BADGE[complaint.statut] %>"><%= complaint.statut %></span></li>
+            <li class="d-flex justify-content-between py-1"><span class="text-muted">Catégorie</span><span><%= complaint.categorie %></span></li>
+            <li class="d-flex justify-content-between py-1"><span class="text-muted">Priorité</span><span><%= complaint.priorite %></span></li>
+            <li class="d-flex justify-content-between py-1"><span class="text-muted">Mise à jour</span><span><%= formatDate(complaint.updatedAt) %></span></li>
+          </ul>
+        </div>
+      </div>
+
+      <% if (currentUser.role === ROLES.ADMIN) { %>
+        <div class="card shadow-sm border-0 border-start border-primary border-4">
+          <div class="card-body">
+            <h6 class="fw-bold text-uppercase text-muted small mb-3"><i class="bi bi-gear me-1"></i>Action administration</h6>
+            <% if (nextStatuses.length === 0) { %>
+              <p class="text-muted small mb-0">Aucune transition possible (statut final).</p>
+            <% } else { %>
+              <form action="/reclamations/<%= complaint.id %>/statut" method="POST">
+                <label class="form-label small">Changer le statut</label>
+                <div class="input-group">
+                  <select name="statut" class="form-select">
+                    <% nextStatuses.forEach(function(s){ %><option value="<%= s %>"><%= s %></option><% }); %>
+                  </select>
+                  <button class="btn btn-primary">OK</button>
+                </div>
+                <div class="form-text">Transitions autorisées depuis "<%= complaint.statut %>".</div>
+              </form>
+            <% } %>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

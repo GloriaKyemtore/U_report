@@ -1,0 +1,109 @@
+<%- include('partials/head', { title: 'Accueil' }) %>
+<%- include('partials/navbar') %>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="container py-5">
+    <div class="row align-items-center g-4">
+      <div class="col-lg-7">
+        <span class="eyebrow">Université &bull; Réclamations en ligne</span>
+        <h1 class="display-5 fw-bold my-3">Faites entendre votre voix.</h1>
+        <p class="lead mb-4">
+          U-Report centralise le dépôt et le suivi des réclamations universitaires :
+          scolarité, infrastructures, informatique, restauration... Déposez, suivez le statut
+          et échangez avec l'administration.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+          <% if (currentUser) { %>
+            <a href="/reclamations/nouvelle" class="btn btn-primary btn-lg"><i class="bi bi-plus-circle me-1"></i>Déposer une réclamation</a>
+            <a href="/dashboard" class="btn btn-outline-primary btn-lg">Mon tableau de bord</a>
+          <% } else { %>
+            <a href="/register" class="btn btn-primary btn-lg">Créer un compte</a>
+            <a href="/login" class="btn btn-outline-primary btn-lg">Se connecter</a>
+          <% } %>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="row g-3">
+          <div class="col-6"><div class="stat-card"><div class="stat-num"><%= stats.total %></div><div class="stat-label">Réclamations</div></div></div>
+          <div class="col-6"><div class="stat-card"><div class="stat-num"><%= stats.ouverts %></div><div class="stat-label">En traitement</div></div></div>
+          <div class="col-6"><div class="stat-card"><div class="stat-num"><%= stats.resolus %></div><div class="stat-label">Résolues</div></div></div>
+          <div class="col-6"><div class="stat-card"><div class="stat-num"><%= stats.utilisateurs %></div><div class="stat-label">Utilisateurs</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Fonctionnalites -->
+<section class="container py-5">
+  <h2 class="text-center fw-bold mb-1 reveal">Comment ça marche ?</h2>
+  <p class="text-center text-muted mb-5 reveal">Un parcours simple, du dépôt à la résolution.</p>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="feature-card h-100 reveal">
+        <div class="feature-icon bg-primary-subtle text-primary"><i class="bi bi-pencil-square"></i></div>
+        <h5>1. Déposez</h5>
+        <p class="text-muted mb-0">Remplissez le formulaire : titre, catégorie, priorité et description. Un numéro de suivi unique est généré.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-card h-100 reveal">
+        <div class="feature-icon bg-warning-subtle text-warning"><i class="bi bi-list-check"></i></div>
+        <h5>2. Suivez</h5>
+        <p class="text-muted mb-0">Consultez le statut (Nouveau, En cours, Résolu...) depuis votre tableau de bord, à tout moment.</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="feature-card h-100 reveal">
+        <div class="feature-icon bg-success-subtle text-success"><i class="bi bi-chat-dots"></i></div>
+        <h5>3. Échangez</h5>
+        <p class="text-muted mb-0">Discutez avec l'administration via le fil de discussion jusqu'à la résolution complète.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Categories -->
+<section class="container py-5">
+  <h2 class="text-center fw-bold mb-1 reveal">Quel type de réclamation ?</h2>
+  <p class="text-center text-muted mb-5 reveal">Toutes les catégories de la vie universitaire sont couvertes.</p>
+  <div class="row g-3">
+    <% categories.forEach(function(cat) { %>
+      <div class="col-6 col-md-3">
+        <div class="category-pill text-center reveal"><%= cat %></div>
+      </div>
+    <% }); %>
+  </div>
+</section>
+
+<!-- Confiance institutionnelle -->
+<section class="trust-section py-5">
+  <div class="container">
+    <div class="row g-4 text-center">
+      <div class="col-md-4">
+        <div class="trust-item reveal">
+          <i class="bi bi-shield-check fs-1 d-block mb-2"></i>
+          <h5>Confidentiel</h5>
+          <p class="mb-0 opacity-75">Seuls vous et l'administration avez accès au contenu de votre réclamation.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="trust-item reveal">
+          <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
+          <h5>Suivi en temps réel</h5>
+          <p class="mb-0 opacity-75">Chaque changement de statut est visible immédiatement dans votre tableau de bord.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="trust-item reveal">
+          <i class="bi bi-mortarboard fs-1 d-block mb-2"></i>
+          <h5>Plateforme officielle</h5>
+          <p class="mb-0 opacity-75">Gérée directement par l'administration universitaire, sans intermédiaire.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer', { scripts: '<script src="/js/reveal.js"></script>' }) %>

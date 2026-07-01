@@ -1,0 +1,267 @@
+/*
+ * U-Report - Plateforme de gestion des reclamations universitaires
+ * Serveur Express + EJS + Bootstrap 5. Stockage MongoDB (Mongoose).
+ */
+require('dotenv').config();
+const path = require('path');
+const express = require('express');
+const session = require('express-session');
+const flash = require('connect-flash');
+const methodOverride = require('method-override');
+const store = require('./data/store');
+const connectDB = require('./data/db');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Transmet les erreurs des handlers async au middleware d'erreur d'Express
+const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+
+// --- Configuration ----------------------------------------------------------
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true }));
+app.use(methodOverride('_method'));
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'u-report-secret-dev-only',
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(flash());
+
+// Variables disponibles dans toutes les vues
+app.use((req, res, next) => {
+  res.locals.currentUser = req.session.user || null;
+  res.locals.success = req.flash('success');
+  res.locals.error = req.flash('error');
+  res.locals.STATUS_BADGE = store.STATUS_BADGE;
+  res.locals.ROLES = store.ROLES;
+  next();
+});
+
+// --- Middlewares d authentification / RBAC ----------------------------------
+function requireAuth(req, res, next) {
+  if (!req.session.user) {
+    req.flash('error', 'Veuillez vous connecter pour continuer.');
+    return res.redirect('/login');
+  }
+  next();
+}
+
+function requireAdmin(req, res, next) {
+  if (!req.session.user || req.session.user.role !== store.ROLES.ADMIN) {
+    req.flash('error', "Accès réservé à l'administration.");
+    return res.redirect('/dashboard');
+  }
+  next();
+}
+
+// --- Helper : formatage de date ---------------------------------------------
+app.locals.formatDate = (d) =>
+  new Date(d).toLocaleDateString('fr-FR', {
+    day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
+
+// ============================================================================
+//  ROUTES
+// ============================================================================
+
+// Accueil
+app.get('/', asyncHandler(async (req, res) => {
+  res.render('index', { stats: await store.stats(), categories: store.CATEGORIES });
+}));
+
+// --- Authentification -------------------------------------------------------
+app.get('/login', (req, res) => {
+  if (req.session.user) return res.redirect('/dashboard');
+  res.render('auth/login');
+});
+
+app.post('/login', asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+  const user = await store.findUserByEmail(email || '');
+  const bcrypt = require('bcryptjs');
+  if (!user || !bcrypt.compareSync(password || '', user.passwordHash)) {
+    req.flash('error', 'Email ou mot de passe incorrect.');
+    return res.redirect('/login');
+  }
+  req.session.user = { id: user.id, nom: user.nom, email: user.email, role: user.role };
+  req.flash('success', `Bienvenue, ${user.nom} !`);
+  res.redirect('/dashboard');
+}));
+
+app.get('/register', (req, res) => {
+  if (req.session.user) return res.redirect('/dashboard');
+  res.render('auth/register');
+});
+
+app.post('/register', asyncHandler(async (req, res) => {
+  const { nom, email, password } = req.body;
+  if (!nom || !email || !password) {
+    req.flash('error', 'Tous les champs sont obligatoires.');
+    return res.redirect('/register');
+  }
+  if (await store.findUserByEmail(email)) {
+    req.flash('error', 'Un compte existe déjà avec cet email.');
+    return res.redirect('/register');
+  }
+  const user = await store.createUser({ nom, email, password, role: store.ROLES.ETUDIANT });
+  req.session.user = { id: user.id, nom: user.nom, email: user.email, role: user.role };
+  req.flash('success', 'Compte créé avec succès !');
+  res.redirect('/dashboard');
+}));
+
+app.post('/logout', (req, res) => {
+  req.session.destroy(() => res.redirect('/'));
+});
+
+// --- Mot de passe oublié -----------------------------------------------------
+app.get('/forgot-password', (req, res) => {
+  if (req.session.user) return res.redirect('/dashboard');
+  res.render('auth/forgot-password', { resetLink: null });
+});
+
+app.post('/forgot-password', asyncHandler(async (req, res) => {
+  const user = await store.findUserByEmail(req.body.email || '');
+  if (!user) {
+    req.flash('error', "Aucun compte n'est associé à cet email.");
+    return res.redirect('/forgot-password');
+  }
+  const token = await store.generateResetToken(user);
+  res.render('auth/forgot-password', { resetLink: '/reset-password/' + token });
+}));
+
+app.get('/reset-password/:token', asyncHandler(async (req, res) => {
+  const user = await store.findUserByResetToken(req.params.token);
+  if (!user) {
+    req.flash('error', 'Lien de réinitialisation invalide ou expiré.');
+    return res.redirect('/forgot-password');
+  }
+  res.render('auth/reset-password', { token: req.params.token });
+}));
+
+app.post('/reset-password/:token', asyncHandler(async (req, res) => {
+  const user = await store.findUserByResetToken(req.params.token);
+  if (!user) {
+    req.flash('error', 'Lien de réinitialisation invalide ou expiré.');
+    return res.redirect('/forgot-password');
+  }
+  const { password, confirmPassword } = req.body;
+  if (!password || password.length < 6) {
+    req.flash('error', 'Le mot de passe doit contenir au moins 6 caractères.');
+    return res.redirect('/reset-password/' + req.params.token);
+  }
+  if (password !== confirmPassword) {
+    req.flash('error', 'Les mots de passe ne correspondent pas.');
+    return res.redirect('/reset-password/' + req.params.token);
+  }
+  await store.resetPassword(user, password);
+  req.flash('success', 'Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.');
+  res.redirect('/login');
+}));
+
+// --- Tableau de bord (aiguillage selon le role) -----------------------------
+app.get('/dashboard', requireAuth, asyncHandler(async (req, res) => {
+  if (req.session.user.role === store.ROLES.ADMIN) {
+    return res.render('dashboard/admin', {
+      complaints: await store.allComplaints(),
+      stats: await store.stats(),
+    });
+  }
+  res.render('dashboard/etudiant', {
+    complaints: await store.complaintsByAuthor(req.session.user.id),
+  });
+}));
+
+// --- Reclamations -----------------------------------------------------------
+app.get('/reclamations/nouvelle', requireAuth, (req, res) => {
+  res.render('complaints/new', {
+    categories: store.CATEGORIES,
+    priorities: store.PRIORITIES,
+  });
+});
+
+app.post('/reclamations', requireAuth, asyncHandler(async (req, res) => {
+  const { titre, description, categorie, priorite } = req.body;
+  if (!titre || !description) {
+    req.flash('error', 'Le titre et la description sont obligatoires.');
+    return res.redirect('/reclamations/nouvelle');
+  }
+  const c = await store.createComplaint({
+    titre, description, categorie, priorite, auteurId: req.session.user.id,
+  });
+  req.flash('success', `Réclamation ${c.ref} déposée avec succès.`);
+  res.redirect('/reclamations/' + c.id);
+}));
+
+app.get('/reclamations/:id', requireAuth, asyncHandler(async (req, res) => {
+  const complaint = await store.findComplaintById(req.params.id);
+  if (!complaint) {
+    req.flash('error', 'Réclamation introuvable.');
+    return res.redirect('/dashboard');
+  }
+  const user = req.session.user;
+  const isOwner = String(complaint.auteurId) === user.id;
+  if (!isOwner && user.role !== store.ROLES.ADMIN) {
+    req.flash('error', "Vous n'avez pas accès à cette réclamation.");
+    return res.redirect('/dashboard');
+  }
+
+  // Resout les auteurs (reclamation + messages) une fois, pour un lookup synchrone dans la vue
+  const authorIds = [...new Set([complaint.auteurId, ...complaint.messages.map((m) => m.auteurId)].map(String))];
+  const authors = await Promise.all(authorIds.map((id) => store.findUserById(id)));
+  const authorById = Object.fromEntries(authorIds.map((id, i) => [id, authors[i]]));
+
+  res.render('complaints/show', {
+    complaint,
+    auteur: authorById[String(complaint.auteurId)],
+    findUser: (id) => authorById[String(id)],
+    nextStatuses: store.STATUS_FLOW[complaint.statut] || [],
+  });
+}));
+
+// Fil de discussion : ajouter un message
+app.post('/reclamations/:id/messages', requireAuth, asyncHandler(async (req, res) => {
+  const complaint = await store.findComplaintById(req.params.id);
+  if (!complaint) return res.redirect('/dashboard');
+  const user = req.session.user;
+  const isOwner = String(complaint.auteurId) === user.id;
+  if (!isOwner && user.role !== store.ROLES.ADMIN) return res.redirect('/dashboard');
+  const texte = (req.body.texte || '').trim();
+  if (texte) {
+    await store.addMessage(complaint, { auteurId: user.id, role: user.role, texte });
+  }
+  res.redirect('/reclamations/' + complaint.id);
+}));
+
+// Changement de statut (admin uniquement) - machine a etats
+app.post('/reclamations/:id/statut', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const complaint = await store.findComplaintById(req.params.id);
+  if (!complaint) return res.redirect('/dashboard');
+  const ok = await store.changeStatus(complaint, req.body.statut);
+  req.flash(ok ? 'success' : 'error', ok ? `Statut mis à jour : ${complaint.statut}.` : 'Transition de statut non autorisée.');
+  res.redirect('/reclamations/' + complaint.id);
+}));
+
+// --- 404 --------------------------------------------------------------------
+app.use((req, res) => {
+  res.status(404).render('404');
+});
+
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`U-Report démarré sur http://localhost:${PORT}`);
+      console.log('Comptes de démo :');
+      console.log('  Admin    -> admin@ureport.bf / admin123');
+      console.log('  Étudiant -> gloria@ureport.bf / etudiant123');
+    });
+  })
+  .catch((err) => {
+    console.error('Impossible de se connecter à MongoDB :', err.message);
+    process.exit(1);
+  });
