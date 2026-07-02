@@ -2,7 +2,7 @@
 <%- include('../partials/navbar') %>
 
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
     <div>
       <h3 class="fw-bold mb-0">Mes réclamations</h3>
       <p class="text-muted mb-0">Bonjour <%= currentUser.nom %>, voici le suivi de vos demandes.</p>
@@ -10,7 +10,23 @@
     <a href="/reclamations/nouvelle" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Nouvelle réclamation</a>
   </div>
 
-  <% if (complaints.length === 0) { %>
+  <form method="GET" action="/dashboard" class="d-flex align-items-center gap-2 mb-4">
+    <label class="form-label small mb-0 text-muted">Statut</label>
+    <select name="statut" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+      <option value="" <%= statutFilter === '' ? 'selected' : '' %>>Tous</option>
+      <% Object.values(STATUSES).forEach(function(s){ %>
+        <option value="<%= s %>" <%= statutFilter === s ? 'selected' : '' %>><%= s %></option>
+      <% }); %>
+    </select>
+  </form>
+
+  <% if (complaints.length === 0 && statutFilter) { %>
+    <div class="text-center py-5 bg-light rounded-3">
+      <i class="bi bi-filter-circle display-4 text-muted"></i>
+      <p class="text-muted mt-2">Aucune réclamation avec le statut "<%= statutFilter %>".</p>
+      <a href="/dashboard" class="btn btn-outline-secondary">Réinitialiser le filtre</a>
+    </div>
+  <% } else if (complaints.length === 0) { %>
     <div class="text-center py-5 bg-light rounded-3">
       <i class="bi bi-inbox display-4 text-muted"></i>
       <p class="text-muted mt-2">Vous n'avez encore déposé aucune réclamation.</p>
@@ -34,10 +50,13 @@
                 <span><i class="bi bi-chat me-1"></i><%= c.messages.length %></span>
                 <span><i class="bi bi-clock me-1"></i><%= formatDate(c.createdAt) %></span>
               </div>
-              <% if (c.statut !== STATUSES.EN_COURS) { %>
-                <form action="/reclamations/<%= c.id %>/supprimer" method="POST" class="position-relative mt-2" style="z-index: 2;" onsubmit="return confirm('Supprimer définitivement cette réclamation ?');">
-                  <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Supprimer</button>
-                </form>
+              <% if (canModify(c)) { %>
+                <div class="d-flex gap-2 position-relative mt-2" style="z-index: 2;">
+                  <a href="/reclamations/<%= c.id %>/modifier" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Modifier</a>
+                  <form action="/reclamations/<%= c.id %>/supprimer" method="POST" onsubmit="return confirm('Supprimer définitivement cette réclamation ?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Supprimer</button>
+                  </form>
+                </div>
               <% } %>
             </div>
           </div>

@@ -51,8 +51,9 @@ const store = {
   },
 
   // Reclamations
-  allComplaints: () => Complaint.find().sort({ createdAt: -1 }),
-  complaintsByAuthor: (userId) => Complaint.find({ auteurId: userId }).sort({ createdAt: -1 }),
+  allComplaints: (statut) => Complaint.find(statut ? { statut } : {}).sort({ createdAt: -1 }),
+  complaintsByAuthor: (userId, statut) =>
+    Complaint.find({ auteurId: userId, ...(statut ? { statut } : {}) }).sort({ createdAt: -1 }),
   findComplaintById: (id) => (validId(id) ? Complaint.findById(id) : null),
   createComplaint: async ({ titre, description, categorie, priorite, auteurId }) => {
     const seq = await Complaint.countDocuments();
@@ -93,6 +94,17 @@ const store = {
   markAllAsRead: (user) =>
     Complaint.updateMany(unreadFilter(user), { [unreadField(user)]: false }),
   deleteComplaint: (complaint) => complaint.deleteOne(),
+  updateComplaint: async (complaint, { titre, description, categorie, priorite }) => {
+    complaint.titre = titre;
+    complaint.description = description;
+    complaint.categorie = CATEGORIES.includes(categorie) ? categorie : complaint.categorie;
+    complaint.priorite = PRIORITIES.includes(priorite) ? priorite : complaint.priorite;
+    await complaint.save();
+    return complaint;
+  },
+  // L'etudiant ne peut modifier/supprimer que si l'admin n'a pas encore vu
+  // la reclamation ET qu'elle n'est pas deja en cours de traitement
+  canModify: (complaint) => complaint.nonLuAdmin === true && complaint.statut !== STATUSES.EN_COURS,
 
   // Statistiques (pour le dashboard admin / Chart.js)
   stats: async () => {

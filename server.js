@@ -41,6 +41,7 @@ app.use(asyncHandler(async (req, res, next) => {
   res.locals.STATUS_BADGE = store.STATUS_BADGE;
   res.locals.ROLES = store.ROLES;
   res.locals.STATUSES = store.STATUSES;
+  res.locals.canModify = store.canModify;
   res.locals.unreadCount = req.session.user ? await store.unreadCount(req.session.user) : 0;
   res.locals.notifications = req.session.user ? await store.unreadList(req.session.user) : [];
   next();
@@ -177,14 +178,17 @@ app.post('/reset-password/:token', asyncHandler(async (req, res) => {
 
 // --- Tableau de bord (aiguillage selon le role) -----------------------------
 app.get('/dashboard', requireAuth, asyncHandler(async (req, res) => {
+  const statutFilter = Object.values(store.STATUSES).includes(req.query.statut) ? req.query.statut : '';
   if (req.session.user.role === store.ROLES.ADMIN) {
     return res.render('dashboard/admin', {
-      complaints: await store.allComplaints(),
+      complaints: await store.allComplaints(statutFilter),
       stats: await store.stats(),
+      statutFilter,
     });
   }
   res.render('dashboard/etudiant', {
-    complaints: await store.complaintsByAuthor(req.session.user.id),
+    complaints: await store.complaintsByAuthor(req.session.user.id, statutFilter),
+    statutFilter,
   });
 }));
 
@@ -213,17 +217,49 @@ app.post('/reclamations/:id/supprimer', requireAuth, requireEtudiant, asyncHandl
   const complaint = await store.findComplaintById(req.params.id);
   if (!complaint) return res.redirect('/dashboard');
   const isOwner = String(complaint.auteurId) === req.session.user.id;
-  if (!isOwner) {
-    req.flash('error', "Vous n'avez pas accès à cette réclamation.");
-    return res.redirect('/dashboard');
-  }
-  if (complaint.statut === store.STATUSES.EN_COURS) {
-    req.flash('error', 'Une réclamation en cours de traitement ne peut pas être supprimée.');
+  if (!isOwner || !store.canModify(complaint)) {
+    req.flash('error', 'Cette réclamation ne peut plus être supprimée (déjà consultée par l\'administration ou en cours de traitement).');
     return res.redirect('/dashboard');
   }
   await store.deleteComplaint(complaint);
   req.flash('success', `Réclamation ${complaint.ref} supprimée.`);
   res.redirect('/dashboard');
+}));
+
+app.get('/reclamations/:id/modifier', requireAuth, requireEtudiant, asyncHandler(async (req, res) => {
+  const complaint = await store.findComplaintById(req.params.id);
+  if (!complaint) {
+    req.flash('error', 'Réclamation introuvable.');
+    return res.redirect('/dashboard');
+  }
+  const isOwner = String(complaint.auteurId) === req.session.user.id;
+  if (!isOwner || !store.canModify(complaint)) {
+    req.flash('error', 'Cette réclamation ne peut plus être modifiée (déjà consultée par l\'administration ou en cours de traitement).');
+    return res.redirect('/dashboard');
+  }
+  res.render('complaints/edit', {
+    complaint,
+    categories: store.CATEGORIES,
+    priorities: store.PRIORITIES,
+  });
+}));
+
+app.post('/reclamations/:id/modifier', requireAuth, requireEtudiant, asyncHandler(async (req, res) => {
+  const complaint = await store.findComplaintById(req.params.id);
+  if (!complaint) return res.redirect('/dashboard');
+  const isOwner = String(complaint.auteurId) === req.session.user.id;
+  if (!isOwner || !store.canModify(complaint)) {
+    req.flash('error', 'Cette réclamation ne peut plus être modifiée (déjà consultée par l\'administration ou en cours de traitement).');
+    return res.redirect('/dashboard');
+  }
+  const { titre, description, categorie, priorite } = req.body;
+  if (!titre || !description) {
+    req.flash('error', 'Le titre et la description sont obligatoires.');
+    return res.redirect('/reclamations/' + complaint.id + '/modifier');
+  }
+  await store.updateComplaint(complaint, { titre, description, categorie, priorite });
+  req.flash('success', `Réclamation ${complaint.ref} mise à jour.`);
+  res.redirect('/reclamations/' + complaint.id);
 }));
 
 app.get('/reclamations/:id', requireAuth, asyncHandler(async (req, res) => {
