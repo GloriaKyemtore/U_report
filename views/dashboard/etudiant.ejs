@@ -20,22 +20,27 @@
     <div class="row g-3">
       <% complaints.forEach(function(c){ %>
         <div class="col-md-6">
-          <a href="/reclamations/<%= c.id %>" class="text-decoration-none">
-            <div class="card ticket-card h-100 border-0 shadow-sm">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start">
-                  <span class="text-muted small"><%= c.ref %></span>
-                  <span class="badge <%= STATUS_BADGE[c.statut] %>"><%= c.statut %></span>
-                </div>
-                <h6 class="fw-bold text-dark mt-1 mb-2"><%= c.titre %></h6>
-                <div class="d-flex flex-wrap gap-2 small text-muted">
-                  <span><i class="bi bi-tag me-1"></i><%= c.categorie %></span>
-                  <span><i class="bi bi-chat me-1"></i><%= c.messages.length %></span>
-                  <span><i class="bi bi-clock me-1"></i><%= formatDate(c.createdAt) %></span>
-                </div>
+          <div class="card ticket-card h-100 border-0 shadow-sm position-relative">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start">
+                <span class="text-muted small"><%= c.ref %></span>
+                <span class="badge <%= STATUS_BADGE[c.statut] %>"><%= c.statut %></span>
               </div>
+              <h6 class="fw-bold text-dark mt-1 mb-2">
+                <a href="/reclamations/<%= c.id %>" class="stretched-link text-decoration-none text-dark"><%= c.titre %></a>
+              </h6>
+              <div class="d-flex flex-wrap gap-2 small text-muted">
+                <span><i class="bi bi-tag me-1"></i><%= c.categorie %></span>
+                <span><i class="bi bi-chat me-1"></i><%= c.messages.length %></span>
+                <span><i class="bi bi-clock me-1"></i><%= formatDate(c.createdAt) %></span>
+              </div>
+              <% if (c.statut !== STATUSES.EN_COURS) { %>
+                <form action="/reclamations/<%= c.id %>/supprimer" method="POST" class="position-relative mt-2" style="z-index: 2;" onsubmit="return confirm('Supprimer définitivement cette réclamation ?');">
+                  <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Supprimer</button>
+                </form>
+              <% } %>
             </div>
-          </a>
+          </div>
         </div>
       <% }); %>
     </div>

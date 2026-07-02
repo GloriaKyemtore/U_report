@@ -13,6 +13,9 @@ const { STATUSES, STATUS_FLOW, STATUS_BADGE, CATEGORIES, PRIORITIES, ROLES } = r
 const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
 const hash = (pwd) => bcrypt.hashSync(pwd, 10);
 const validId = (id) => mongoose.isValidObjectId(id);
+const unreadField = (user) => (user.role === ROLES.ADMIN ? 'nonLuAdmin' : 'nonLuEtudiant');
+const unreadFilter = (user) =>
+  user.role === ROLES.ADMIN ? { nonLuAdmin: true } : { auteurId: user.id, nonLuEtudiant: true };
 
 const store = {
   STATUSES,
@@ -84,10 +87,12 @@ const store = {
     else complaint.nonLuEtudiant = false;
     await complaint.save();
   },
-  unreadCount: (user) =>
-    user.role === ROLES.ADMIN
-      ? Complaint.countDocuments({ nonLuAdmin: true })
-      : Complaint.countDocuments({ auteurId: user.id, nonLuEtudiant: true }),
+  unreadCount: (user) => Complaint.countDocuments(unreadFilter(user)),
+  unreadList: (user) =>
+    Complaint.find(unreadFilter(user)).sort({ updatedAt: -1 }).limit(8).select('ref titre statut'),
+  markAllAsRead: (user) =>
+    Complaint.updateMany(unreadFilter(user), { [unreadField(user)]: false }),
+  deleteComplaint: (complaint) => complaint.deleteOne(),
 
   // Statistiques (pour le dashboard admin / Chart.js)
   stats: async () => {

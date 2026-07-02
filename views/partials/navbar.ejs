@@ -13,15 +13,22 @@
           <% if (currentUser.role !== ROLES.ADMIN) { %>
             <li class="nav-item"><a class="nav-link" href="/reclamations/nouvelle"><i class="bi bi-plus-circle me-1"></i>Nouvelle réclamation</a></li>
           <% } %>
-          <li class="nav-item">
-            <a class="nav-link position-relative" href="/dashboard" title="Notifications">
+          <li class="nav-item dropdown" id="notifDropdown">
+            <a class="nav-link position-relative dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" id="notifBell" title="Notifications">
               <i class="bi bi-bell fs-5"></i>
-              <% if (unreadCount > 0) { %>
-                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                  <%= unreadCount %><span class="visually-hidden">notifications non lues</span>
-                </span>
-              <% } %>
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger<%= unreadCount > 0 ? '' : ' d-none' %>" id="notifBadge">
+                <%= unreadCount %><span class="visually-hidden">notifications non lues</span>
+              </span>
             </a>
+            <ul class="dropdown-menu dropdown-menu-end p-2" id="notifList" style="min-width: 320px; max-height: 340px; overflow-y: auto;">
+              <% if (notifications.length === 0) { %>
+                <li class="px-2 py-3 text-center text-muted small">Aucune notification</li>
+              <% } else { %>
+                <% notifications.forEach(function(n) { %>
+                  <li><a class="dropdown-item small text-wrap" href="/reclamations/<%= n.id %>"><strong><%= n.ref %></strong> &mdash; <%= n.titre %></a></li>
+                <% }); %>
+              <% } %>
+            </ul>
           </li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">

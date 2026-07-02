@@ -40,7 +40,9 @@ app.use(asyncHandler(async (req, res, next) => {
   res.locals.error = req.flash('error');
   res.locals.STATUS_BADGE = store.STATUS_BADGE;
   res.locals.ROLES = store.ROLES;
+  res.locals.STATUSES = store.STATUSES;
   res.locals.unreadCount = req.session.user ? await store.unreadCount(req.session.user) : 0;
+  res.locals.notifications = req.session.user ? await store.unreadList(req.session.user) : [];
   next();
 }));
 
@@ -207,6 +209,23 @@ app.post('/reclamations', requireAuth, requireEtudiant, asyncHandler(async (req,
   res.redirect('/reclamations/' + c.id);
 }));
 
+app.post('/reclamations/:id/supprimer', requireAuth, requireEtudiant, asyncHandler(async (req, res) => {
+  const complaint = await store.findComplaintById(req.params.id);
+  if (!complaint) return res.redirect('/dashboard');
+  const isOwner = String(complaint.auteurId) === req.session.user.id;
+  if (!isOwner) {
+    req.flash('error', "Vous n'avez pas accès à cette réclamation.");
+    return res.redirect('/dashboard');
+  }
+  if (complaint.statut === store.STATUSES.EN_COURS) {
+    req.flash('error', 'Une réclamation en cours de traitement ne peut pas être supprimée.');
+    return res.redirect('/dashboard');
+  }
+  await store.deleteComplaint(complaint);
+  req.flash('success', `Réclamation ${complaint.ref} supprimée.`);
+  res.redirect('/dashboard');
+}));
+
 app.get('/reclamations/:id', requireAuth, asyncHandler(async (req, res) => {
   const complaint = await store.findComplaintById(req.params.id);
   if (!complaint) {
@@ -255,6 +274,23 @@ app.post('/reclamations/:id/statut', requireAuth, requireAdmin, asyncHandler(asy
   const ok = await store.changeStatus(complaint, req.body.statut);
   req.flash(ok ? 'success' : 'error', ok ? `Statut mis à jour : ${complaint.statut}.` : 'Transition de statut non autorisée.');
   res.redirect('/reclamations/' + complaint.id);
+}));
+
+// --- Notifications (polling cote client) ------------------------------------
+app.get('/notifications', requireAuth, asyncHandler(async (req, res) => {
+  const [count, items] = await Promise.all([
+    store.unreadCount(req.session.user),
+    store.unreadList(req.session.user),
+  ]);
+  res.json({
+    count,
+    items: items.map((c) => ({ id: c.id, ref: c.ref, titre: c.titre })),
+  });
+}));
+
+app.post('/notifications/read', requireAuth, asyncHandler(async (req, res) => {
+  await store.markAllAsRead(req.session.user);
+  res.json({ ok: true });
 }));
 
 // --- 404 --------------------------------------------------------------------
