@@ -55,12 +55,14 @@ const store = {
   complaintsByAuthor: (userId, statut) =>
     Complaint.find({ auteurId: userId, ...(statut ? { statut } : {}) }).sort({ createdAt: -1 }),
   findComplaintById: (id) => (validId(id) ? Complaint.findById(id) : null),
-  createComplaint: async ({ titre, description, categorie, priorite, auteurId }) => {
+  createComplaint: async ({ titre, description, universite, filiere, categorie, priorite, auteurId }) => {
     const seq = await Complaint.countDocuments();
     return Complaint.create({
       ref: 'UR-' + (2601 + seq),
       titre,
       description,
+      universite,
+      filiere,
       categorie: CATEGORIES.includes(categorie) ? categorie : 'Autre',
       priorite: PRIORITIES.includes(priorite) ? priorite : 'Normale',
       statut: STATUSES.NOUVEAU,
@@ -72,7 +74,9 @@ const store = {
     // Notifie l'autre partie (etudiant <-> admin) qu'il y a une nouvelle activite
     if (role === ROLES.ADMIN) complaint.nonLuEtudiant = true;
     else complaint.nonLuAdmin = true;
-    await complaint.save();
+    // validateModifiedOnly : ne pas faire echouer la sauvegarde sur d'anciennes
+    // reclamations qui n'ont pas encore universite/filiere (champs ajoutes apres coup)
+    await complaint.save({ validateModifiedOnly: true });
     return complaint.messages[complaint.messages.length - 1];
   },
   changeStatus: async (complaint, nextStatus) => {
@@ -80,13 +84,13 @@ const store = {
     if (!allowed.includes(nextStatus)) return false;
     complaint.statut = nextStatus;
     complaint.nonLuEtudiant = true;
-    await complaint.save();
+    await complaint.save({ validateModifiedOnly: true });
     return true;
   },
   markAsRead: async (complaint, role) => {
     if (role === ROLES.ADMIN) complaint.nonLuAdmin = false;
     else complaint.nonLuEtudiant = false;
-    await complaint.save();
+    await complaint.save({ validateModifiedOnly: true });
   },
   unreadCount: (user) => Complaint.countDocuments(unreadFilter(user)),
   unreadList: (user) =>
@@ -94,9 +98,11 @@ const store = {
   markAllAsRead: (user) =>
     Complaint.updateMany(unreadFilter(user), { [unreadField(user)]: false }),
   deleteComplaint: (complaint) => complaint.deleteOne(),
-  updateComplaint: async (complaint, { titre, description, categorie, priorite }) => {
+  updateComplaint: async (complaint, { titre, description, universite, filiere, categorie, priorite }) => {
     complaint.titre = titre;
     complaint.description = description;
+    complaint.universite = universite;
+    complaint.filiere = filiere;
     complaint.categorie = CATEGORIES.includes(categorie) ? categorie : complaint.categorie;
     complaint.priorite = PRIORITIES.includes(priorite) ? priorite : complaint.priorite;
     await complaint.save();

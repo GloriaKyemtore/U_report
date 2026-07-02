@@ -37,38 +37,23 @@
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-        <h6 class="fw-bold mb-0">Toutes les réclamations <span class="text-muted fw-normal">(<%= complaints.length %>)</span></h6>
-        <form method="GET" action="/dashboard" class="d-flex align-items-center gap-2">
+        <h6 class="fw-bold mb-0">Toutes les réclamations <span class="text-muted fw-normal">(<span id="complaintsCount"><%= complaints.length %></span>)</span></h6>
+        <div class="d-flex align-items-center gap-2">
           <label class="form-label small mb-0 text-muted">Statut</label>
-          <select name="statut" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+          <select id="statutFilter" class="form-select form-select-sm" style="width: auto;">
             <option value="" <%= statutFilter === '' ? 'selected' : '' %>>Tous (historique complet)</option>
             <% Object.values(STATUSES).forEach(function(s){ %>
               <option value="<%= s %>" <%= statutFilter === s ? 'selected' : '' %>><%= s %></option>
             <% }); %>
           </select>
-        </form>
+        </div>
       </div>
       <div class="table-responsive">
         <table class="table table-hover align-middle">
           <thead class="table-light">
             <tr><th>Réf</th><th>Titre</th><th>Catégorie</th><th>Priorité</th><th>Statut</th><th>Date</th><th></th></tr>
           </thead>
-          <tbody>
-            <% if (complaints.length === 0) { %>
-              <tr><td colspan="7" class="text-center text-muted py-4">Aucune réclamation pour ce statut.</td></tr>
-            <% } %>
-            <% complaints.forEach(function(c){ %>
-              <tr>
-                <td class="text-muted small"><%= c.ref %></td>
-                <td class="fw-semibold"><%= c.titre %></td>
-                <td><%= c.categorie %></td>
-                <td><%= c.priorite %></td>
-                <td><span class="badge <%= STATUS_BADGE[c.statut] %>"><%= c.statut %></span></td>
-                <td class="small text-muted"><%= formatDate(c.createdAt) %></td>
-                <td><a href="/reclamations/<%= c.id %>" class="btn btn-sm btn-outline-primary">Ouvrir</a></td>
-              </tr>
-            <% }); %>
-          </tbody>
+          <tbody id="complaintsContainer"><%- include('../partials/admin-rows', { complaints: complaints }) %></tbody>
         </table>
       </div>
     </div>
@@ -102,4 +87,5 @@
       options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { precision: 0 } } } }
     });
   </script>
+  <script src="/js/dashboard-filter.js"></script>
 ` }) %>

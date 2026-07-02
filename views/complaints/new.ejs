@@ -21,6 +21,17 @@
             </div>
             <div class="row g-3">
               <div class="col-md-6 mb-3">
+                <label class="form-label">Université <span class="text-danger">*</span></label>
+                <input type="text" name="universite" class="form-control" required maxlength="120" placeholder="Ex : Universite de Ouagadougou">
+                <div class="form-text">C'est aussi le destinataire de la réclamation.</div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label">Filière <span class="text-danger">*</span></label>
+                <input type="text" name="filiere" class="form-control" required maxlength="120" placeholder="Ex : Informatique - Licence 3">
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6 mb-3">
                 <label class="form-label">Catégorie</label>
                 <select name="categorie" class="form-select">
                   <% categories.forEach(function(c){ %><option value="<%= c %>"><%= c %></option><% }); %>

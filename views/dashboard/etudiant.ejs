@@ -10,60 +10,17 @@
     <a href="/reclamations/nouvelle" class="btn btn-primary"><i class="bi bi-plus-circle me-1"></i>Nouvelle réclamation</a>
   </div>
 
-  <form method="GET" action="/dashboard" class="d-flex align-items-center gap-2 mb-4">
+  <div class="d-flex align-items-center gap-2 mb-4">
     <label class="form-label small mb-0 text-muted">Statut</label>
-    <select name="statut" class="form-select form-select-sm" style="width: auto;" onchange="this.form.submit()">
+    <select id="statutFilter" class="form-select form-select-sm" style="width: auto;">
       <option value="" <%= statutFilter === '' ? 'selected' : '' %>>Tous</option>
       <% Object.values(STATUSES).forEach(function(s){ %>
         <option value="<%= s %>" <%= statutFilter === s ? 'selected' : '' %>><%= s %></option>
       <% }); %>
     </select>
-  </form>
+  </div>
 
-  <% if (complaints.length === 0 && statutFilter) { %>
-    <div class="text-center py-5 bg-light rounded-3">
-      <i class="bi bi-filter-circle display-4 text-muted"></i>
-      <p class="text-muted mt-2">Aucune réclamation avec le statut "<%= statutFilter %>".</p>
-      <a href="/dashboard" class="btn btn-outline-secondary">Réinitialiser le filtre</a>
-    </div>
-  <% } else if (complaints.length === 0) { %>
-    <div class="text-center py-5 bg-light rounded-3">
-      <i class="bi bi-inbox display-4 text-muted"></i>
-      <p class="text-muted mt-2">Vous n'avez encore déposé aucune réclamation.</p>
-      <a href="/reclamations/nouvelle" class="btn btn-primary">Déposer ma première réclamation</a>
-    </div>
-  <% } else { %>
-    <div class="row g-3">
-      <% complaints.forEach(function(c){ %>
-        <div class="col-md-6">
-          <div class="card ticket-card h-100 border-0 shadow-sm position-relative">
-            <div class="card-body">
-              <div class="d-flex justify-content-between align-items-start">
-                <span class="text-muted small"><%= c.ref %></span>
-                <span class="badge <%= STATUS_BADGE[c.statut] %>"><%= c.statut %></span>
-              </div>
-              <h6 class="fw-bold text-dark mt-1 mb-2">
-                <a href="/reclamations/<%= c.id %>" class="stretched-link text-decoration-none text-dark"><%= c.titre %></a>
-              </h6>
-              <div class="d-flex flex-wrap gap-2 small text-muted">
-                <span><i class="bi bi-tag me-1"></i><%= c.categorie %></span>
-                <span><i class="bi bi-chat me-1"></i><%= c.messages.length %></span>
-                <span><i class="bi bi-clock me-1"></i><%= formatDate(c.createdAt) %></span>
-              </div>
-              <% if (canModify(c)) { %>
-                <div class="d-flex gap-2 position-relative mt-2" style="z-index: 2;">
-                  <a href="/reclamations/<%= c.id %>/modifier" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil me-1"></i>Modifier</a>
-                  <form action="/reclamations/<%= c.id %>/supprimer" method="POST" onsubmit="return confirm('Supprimer définitivement cette réclamation ?');">
-                    <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash me-1"></i>Supprimer</button>
-                  </form>
-                </div>
-              <% } %>
-            </div>
-          </div>
-        </div>
-      <% }); %>
-    </div>
-  <% } %>
+  <div id="complaintsContainer"><%- include('../partials/etudiant-cards', { complaints: complaints, statutFilter: statutFilter }) %></div>
 </div>
 
-<%- include('../partials/footer') %>
+<%- include('../partials/footer', { scripts: '<script src="/js/dashboard-filter.js"></script>' }) %>

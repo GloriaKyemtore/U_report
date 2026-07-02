@@ -1,0 +1,14 @@
+<% if (complaints.length === 0) { %>
+  <tr><td colspan="7" class="text-center text-muted py-4">Aucune réclamation pour ce statut.</td></tr>
+<% } %>
+<% complaints.forEach(function(c){ %>
+  <tr>
+    <td class="text-muted small"><%= c.ref %></td>
+    <td class="fw-semibold"><%= c.titre %></td>
+    <td><%= c.categorie %></td>
+    <td><%= c.priorite %></td>
+    <td><span class="badge <%= STATUS_BADGE[c.statut] %>"><%= c.statut %></span></td>
+    <td class="small text-muted"><%= formatDate(c.createdAt) %></td>
+    <td><a href="/reclamations/<%= c.id %>" class="btn btn-sm btn-outline-primary">Ouvrir</a></td>
+  </tr>
+<% }); %>

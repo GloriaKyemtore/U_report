@@ -192,6 +192,33 @@ app.get('/dashboard', requireAuth, asyncHandler(async (req, res) => {
   });
 }));
 
+// Fragment HTML (AJAX) pour filtrer le tableau de bord sans recharger la page
+function renderPartial(req, view, locals) {
+  return new Promise((resolve, reject) => {
+    req.app.render(view, locals, (err, html) => (err ? reject(err) : resolve(html)));
+  });
+}
+
+app.get('/dashboard/filtre', requireAuth, asyncHandler(async (req, res) => {
+  const statutFilter = Object.values(store.STATUSES).includes(req.query.statut) ? req.query.statut : '';
+  if (req.session.user.role === store.ROLES.ADMIN) {
+    const complaints = await store.allComplaints(statutFilter);
+    const html = await renderPartial(req, 'partials/admin-rows', {
+      complaints,
+      STATUS_BADGE: store.STATUS_BADGE,
+    });
+    return res.json({ count: complaints.length, html });
+  }
+  const complaints = await store.complaintsByAuthor(req.session.user.id, statutFilter);
+  const html = await renderPartial(req, 'partials/etudiant-cards', {
+    complaints,
+    statutFilter,
+    STATUS_BADGE: store.STATUS_BADGE,
+    canModify: store.canModify,
+  });
+  res.json({ count: complaints.length, html });
+}));
+
 // --- Reclamations -----------------------------------------------------------
 app.get('/reclamations/nouvelle', requireAuth, requireEtudiant, (req, res) => {
   res.render('complaints/new', {
@@ -201,13 +228,13 @@ app.get('/reclamations/nouvelle', requireAuth, requireEtudiant, (req, res) => {
 });
 
 app.post('/reclamations', requireAuth, requireEtudiant, asyncHandler(async (req, res) => {
-  const { titre, description, categorie, priorite } = req.body;
-  if (!titre || !description) {
-    req.flash('error', 'Le titre et la description sont obligatoires.');
+  const { titre, description, universite, filiere, categorie, priorite } = req.body;
+  if (!titre || !description || !universite || !filiere) {
+    req.flash('error', "Le titre, la description, l'université et la filière sont obligatoires.");
     return res.redirect('/reclamations/nouvelle');
   }
   const c = await store.createComplaint({
-    titre, description, categorie, priorite, auteurId: req.session.user.id,
+    titre, description, universite, filiere, categorie, priorite, auteurId: req.session.user.id,
   });
   req.flash('success', `Réclamation ${c.ref} déposée avec succès.`);
   res.redirect('/reclamations/' + c.id);
@@ -252,12 +279,12 @@ app.post('/reclamations/:id/modifier', requireAuth, requireEtudiant, asyncHandle
     req.flash('error', 'Cette réclamation ne peut plus être modifiée (déjà consultée par l\'administration ou en cours de traitement).');
     return res.redirect('/dashboard');
   }
-  const { titre, description, categorie, priorite } = req.body;
-  if (!titre || !description) {
-    req.flash('error', 'Le titre et la description sont obligatoires.');
+  const { titre, description, universite, filiere, categorie, priorite } = req.body;
+  if (!titre || !description || !universite || !filiere) {
+    req.flash('error', "Le titre, la description, l'université et la filière sont obligatoires.");
     return res.redirect('/reclamations/' + complaint.id + '/modifier');
   }
-  await store.updateComplaint(complaint, { titre, description, categorie, priorite });
+  await store.updateComplaint(complaint, { titre, description, universite, filiere, categorie, priorite });
   req.flash('success', `Réclamation ${complaint.ref} mise à jour.`);
   res.redirect('/reclamations/' + complaint.id);
 }));
