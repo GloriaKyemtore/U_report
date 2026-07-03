@@ -8,7 +8,7 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const Complaint = require('./models/Complaint');
-const Setting = require('./models/Setting');
+const AdminRequest = require('./models/AdminRequest');
 const DeletionLog = require('./models/DeletionLog');
 const { STATUSES, STATUS_FLOW, STATUS_BADGE, CATEGORIES, PRIORITIES, ROLES } = require('./constants');
 
@@ -125,20 +125,36 @@ const store = {
   // la reclamation ET qu'elle n'est pas deja en cours de traitement
   canModify: (complaint) => complaint.nonLuAdmin === true && complaint.statut !== STATUSES.EN_COURS,
 
-  // Code d'invitation admin : stocke en base, a usage unique
-  getAdminInviteCode: async () => {
-    const doc = await Setting.findOne({ key: 'adminInviteCode' });
-    return doc ? doc.value : null;
+  // Demandes d'acces administrateur : le futur admin soumet nom/email/mot de
+  // passe/motif, un administrateur existant approuve (compte cree) ou refuse.
+  createAdminRequest: ({ nom, email, password, motif }) =>
+    AdminRequest.create({ nom, email, passwordHash: hash(password), motif }),
+  findPendingAdminRequestByEmail: (email) =>
+    AdminRequest.findOne({ email: String(email).toLowerCase(), statut: 'en_attente' }),
+  pendingAdminRequests: () => AdminRequest.find({ statut: 'en_attente' }).sort({ createdAt: 1 }),
+  approveAdminRequest: async (requestId) => {
+    if (!validId(requestId)) return null;
+    const demande = await AdminRequest.findOne({ _id: requestId, statut: 'en_attente' });
+    if (!demande) return null;
+    if (await User.findOne({ email: demande.email })) {
+      demande.statut = 'refusee';
+      await demande.save();
+      return null; // un compte existe deja entre-temps pour cet email
+    }
+    const user = await User.create({
+      nom: demande.nom, email: demande.email, passwordHash: demande.passwordHash, role: ROLES.ADMIN,
+    });
+    demande.statut = 'approuvee';
+    await demande.save();
+    return user;
   },
-  regenerateAdminInviteCode: async () => {
-    const code = crypto.randomBytes(6).toString('hex');
-    await Setting.findOneAndUpdate({ key: 'adminInviteCode' }, { value: code }, { upsert: true });
-    return code;
-  },
-  consumeAdminInviteCode: async (code) => {
-    if (!code) return false;
-    const doc = await Setting.findOneAndDelete({ key: 'adminInviteCode', value: code });
-    return Boolean(doc);
+  rejectAdminRequest: async (requestId) => {
+    if (!validId(requestId)) return false;
+    const demande = await AdminRequest.findOne({ _id: requestId, statut: 'en_attente' });
+    if (!demande) return false;
+    demande.statut = 'refusee';
+    await demande.save();
+    return true;
   },
 
   // Statistiques (pour le dashboard admin / Chart.js)

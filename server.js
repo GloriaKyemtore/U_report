@@ -42,8 +42,10 @@ app.use(asyncHandler(async (req, res, next) => {
   res.locals.ROLES = store.ROLES;
   res.locals.STATUSES = store.STATUSES;
   res.locals.canModify = store.canModify;
-  res.locals.adminInviteCode =
-    req.session.user && req.session.user.role === store.ROLES.ADMIN ? await store.getAdminInviteCode() : '';
+  res.locals.pendingAdminRequestCount =
+    req.session.user && req.session.user.role === store.ROLES.ADMIN
+      ? (await store.pendingAdminRequests()).length
+      : 0;
   res.locals.unreadCount = req.session.user ? await store.unreadCount(req.session.user) : 0;
   res.locals.notifications = req.session.user ? await store.unreadList(req.session.user) : [];
   next();
@@ -114,7 +116,7 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', asyncHandler(async (req, res) => {
-  const { nom, email, password, role, codeAdmin } = req.body;
+  const { nom, email, password, role, motif } = req.body;
   if (!nom || !email || !password) {
     req.flash('error', 'Tous les champs sont obligatoires.');
     return res.redirect('/register');
@@ -123,14 +125,22 @@ app.post('/register', asyncHandler(async (req, res) => {
     req.flash('error', 'Un compte existe déjà avec cet email.');
     return res.redirect('/register');
   }
-  const wantsAdmin = role === store.ROLES.ADMIN;
-  if (wantsAdmin && !(await store.consumeAdminInviteCode(codeAdmin))) {
-    req.flash('error', "Code d'invitation administrateur invalide ou déjà utilisé.");
-    return res.redirect('/register');
+  // Un compte administrateur n'est jamais cree directement : il passe par une
+  // demande, examinee par un administrateur existant depuis son tableau de bord.
+  if (role === store.ROLES.ADMIN) {
+    if (!motif || !motif.trim()) {
+      req.flash('error', "Veuillez indiquer le motif de votre demande d'accès administrateur.");
+      return res.redirect('/register');
+    }
+    if (await store.findPendingAdminRequestByEmail(email)) {
+      req.flash('error', 'Une demande est déjà en attente pour cet email.');
+      return res.redirect('/register');
+    }
+    await store.createAdminRequest({ nom, email, password, motif: motif.trim() });
+    req.flash('success', "Votre demande d'accès administrateur a été envoyée. Vous pourrez vous connecter dès qu'un administrateur l'aura approuvée.");
+    return res.redirect('/login');
   }
-  const user = await store.createUser({
-    nom, email, password, role: wantsAdmin ? store.ROLES.ADMIN : store.ROLES.ETUDIANT,
-  });
+  const user = await store.createUser({ nom, email, password, role: store.ROLES.ETUDIANT });
   req.session.user = { id: user.id, nom: user.nom, email: user.email, role: user.role };
   req.flash('success', 'Compte créé avec succès !');
   res.redirect('/dashboard');
@@ -203,10 +213,19 @@ app.post('/reset-password/:token', asyncHandler(async (req, res) => {
   res.redirect('/login');
 }));
 
-// --- Code d'invitation admin (a usage unique) --------------------------------
-app.post('/admin/invite/regenerer', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
-  await store.regenerateAdminInviteCode();
-  req.flash('success', 'Nouveau code d\'invitation généré. Transmettez-le à la personne concernée.');
+// --- Demandes d'acces administrateur -----------------------------------------
+app.post('/admin/demandes/:id/approuver', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const user = await store.approveAdminRequest(req.params.id);
+  req.flash(
+    user ? 'success' : 'error',
+    user ? `Compte administrateur créé pour ${user.email}.` : "Impossible d'approuver cette demande (email déjà utilisé entre-temps ou demande introuvable)."
+  );
+  res.redirect('/dashboard');
+}));
+
+app.post('/admin/demandes/:id/refuser', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const ok = await store.rejectAdminRequest(req.params.id);
+  req.flash(ok ? 'success' : 'error', ok ? 'Demande refusée.' : 'Demande introuvable.');
   res.redirect('/dashboard');
 }));
 
@@ -218,6 +237,7 @@ app.get('/dashboard', requireAuth, asyncHandler(async (req, res) => {
       complaints: await store.allComplaints(statutFilter),
       stats: await store.stats(),
       statutFilter,
+      adminRequests: await store.pendingAdminRequests(),
     });
   }
   res.render('dashboard/etudiant', {

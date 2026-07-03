@@ -34,12 +34,12 @@
                 </div>
               </div>
             </div>
-            <div class="mb-3 d-none" id="codeAdminField">
-              <label class="form-label">Code d'invitation administrateur</label>
-              <input type="text" name="codeAdmin" class="form-control" autocomplete="off">
-              <div class="form-text">Fourni par l'administration universitaire.</div>
+            <div class="mb-3 d-none" id="motifAdminField">
+              <label class="form-label">Motif de la demande</label>
+              <textarea name="motif" class="form-control" rows="3" placeholder="Expliquez votre fonction et pourquoi vous avez besoin d'un accès administrateur..."></textarea>
+              <div class="form-text">Votre demande sera examinée par un administrateur avant activation du compte.</div>
             </div>
-            <button class="btn btn-primary w-100">Créer mon compte</button>
+            <button class="btn btn-primary w-100" id="submitBtn">Créer mon compte</button>
           </form>
           <p class="text-center mt-3 mb-0">Déjà inscrit ? <a href="/login">Se connecter</a></p>
         </div>
@@ -52,9 +52,13 @@
   <script>
     var roleAdmin = document.getElementById('roleAdmin');
     var roleEtudiant = document.getElementById('roleEtudiant');
-    var codeAdminField = document.getElementById('codeAdminField');
-    function toggleCodeAdmin() { codeAdminField.classList.toggle('d-none', !roleAdmin.checked); }
-    roleAdmin.addEventListener('change', toggleCodeAdmin);
-    roleEtudiant.addEventListener('change', toggleCodeAdmin);
+    var motifAdminField = document.getElementById('motifAdminField');
+    var submitBtn = document.getElementById('submitBtn');
+    function toggleMotifAdmin() {
+      motifAdminField.classList.toggle('d-none', !roleAdmin.checked);
+      submitBtn.textContent = roleAdmin.checked ? 'Envoyer ma demande' : 'Créer mon compte';
+    }
+    roleAdmin.addEventListener('change', toggleMotifAdmin);
+    roleEtudiant.addEventListener('change', toggleMotifAdmin);
   </script>
 ` }) %>

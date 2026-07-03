@@ -5,6 +5,32 @@
   <h3 class="fw-bold mb-1">Tableau de bord - Administration</h3>
   <p class="text-muted mb-4">Vue d'ensemble de toutes les réclamations.</p>
 
+  <!-- Demandes d'acces administrateur -->
+  <% if (adminRequests.length > 0) { %>
+    <div class="card shadow-sm border-0 mb-4" id="demandesAdmin">
+      <div class="card-body">
+        <h6 class="fw-bold mb-3"><i class="bi bi-person-plus me-1"></i>Demandes d'accès administrateur <span class="badge bg-danger rounded-pill"><%= adminRequests.length %></span></h6>
+        <% adminRequests.forEach(function(r) { %>
+          <div class="d-flex justify-content-between align-items-start border rounded p-3 mb-2 flex-wrap gap-2">
+            <div>
+              <div class="fw-semibold"><%= r.nom %> <span class="text-muted fw-normal">&lt;<%= r.email %>&gt;</span></div>
+              <div class="small text-muted">Demandé le <%= formatDate(r.createdAt) %></div>
+              <div class="small mt-1"><%= r.motif %></div>
+            </div>
+            <div class="d-flex gap-2">
+              <form action="/admin/demandes/<%= r.id %>/approuver" method="POST">
+                <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-lg me-1"></i>Approuver</button>
+              </form>
+              <form action="/admin/demandes/<%= r.id %>/refuser" method="POST">
+                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg me-1"></i>Refuser</button>
+              </form>
+            </div>
+          </div>
+        <% }); %>
+      </div>
+    </div>
+  <% } %>
+
   <!-- KPIs -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3"><div class="kpi kpi-primary"><div class="kpi-num"><%= stats.total %></div><div class="kpi-label">Total</div></div></div>

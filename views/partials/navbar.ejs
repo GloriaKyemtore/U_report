@@ -39,20 +39,13 @@
               <li><span class="dropdown-item-text small text-muted"><%= currentUser.email %></span></li>
               <% if (currentUser.role === ROLES.ADMIN) { %>
                 <li><hr class="dropdown-divider"></li>
-                <li class="px-3 py-1">
-                  <div class="small text-muted mb-1">Code d'invitation admin (usage unique)</div>
-                  <% if (adminInviteCode) { %>
-                    <div class="input-group input-group-sm mb-2">
-                      <input type="text" class="form-control" id="adminInviteCode" value="<%= adminInviteCode %>" readonly>
-                      <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('adminInviteCode').value)" title="Copier"><i class="bi bi-clipboard"></i></button>
-                    </div>
-                  <% } else { %>
-                    <p class="small text-muted mb-2">Aucun code actif : il a déjà été utilisé.</p>
-                  <% } %>
-                  <form action="/admin/invite/regenerer" method="POST">
-                    <button type="submit" class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-arrow-repeat me-1"></i>Générer un nouveau code</button>
-                  </form>
-                  <div class="form-text">Un code n'est valable que pour une seule inscription.</div>
+                <li>
+                  <a class="dropdown-item d-flex justify-content-between align-items-center" href="/dashboard#demandesAdmin">
+                    <span><i class="bi bi-person-plus me-1"></i>Demandes d'accès admin</span>
+                    <% if (pendingAdminRequestCount > 0) { %>
+                      <span class="badge bg-danger rounded-pill"><%= pendingAdminRequestCount %></span>
+                    <% } %>
+                  </a>
                 </li>
               <% } %>
               <li><hr class="dropdown-divider"></li>
