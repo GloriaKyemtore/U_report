@@ -8,6 +8,8 @@ const crypto = require('crypto');
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const Complaint = require('./models/Complaint');
+const Setting = require('./models/Setting');
+const DeletionLog = require('./models/DeletionLog');
 const { STATUSES, STATUS_FLOW, STATUS_BADGE, CATEGORIES, PRIORITIES, ROLES } = require('./constants');
 
 const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
@@ -48,6 +50,17 @@ const store = {
     user.resetToken = null;
     user.resetTokenExpires = null;
     await user.save();
+  },
+  countAdmins: () => User.countDocuments({ role: ROLES.ADMIN }),
+  // Suppression definitive du compte a la demande de son titulaire : on garde
+  // une trace (nom/email/role/raison) et on retire ses reclamations si etudiant
+  // (un admin n'est jamais auteur de reclamation).
+  deleteUserAccount: async (user, raison) => {
+    await DeletionLog.create({ nom: user.nom, email: user.email, role: user.role, raison });
+    if (user.role === ROLES.ETUDIANT) {
+      await Complaint.deleteMany({ auteurId: user._id });
+    }
+    await user.deleteOne();
   },
 
   // Reclamations
@@ -111,6 +124,22 @@ const store = {
   // L'etudiant ne peut modifier/supprimer que si l'admin n'a pas encore vu
   // la reclamation ET qu'elle n'est pas deja en cours de traitement
   canModify: (complaint) => complaint.nonLuAdmin === true && complaint.statut !== STATUSES.EN_COURS,
+
+  // Code d'invitation admin : stocke en base, a usage unique
+  getAdminInviteCode: async () => {
+    const doc = await Setting.findOne({ key: 'adminInviteCode' });
+    return doc ? doc.value : null;
+  },
+  regenerateAdminInviteCode: async () => {
+    const code = crypto.randomBytes(6).toString('hex');
+    await Setting.findOneAndUpdate({ key: 'adminInviteCode' }, { value: code }, { upsert: true });
+    return code;
+  },
+  consumeAdminInviteCode: async (code) => {
+    if (!code) return false;
+    const doc = await Setting.findOneAndDelete({ key: 'adminInviteCode', value: code });
+    return Boolean(doc);
+  },
 
   // Statistiques (pour le dashboard admin / Chart.js)
   stats: async () => {

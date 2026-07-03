@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
 const Complaint = require('./models/Complaint');
+const Setting = require('./models/Setting');
 const { STATUSES, ROLES } = require('./constants');
 
 // Le resolveur DNS de certaines box locales ne repond pas aux requetes SRV
@@ -63,10 +64,17 @@ async function seedIfEmpty() {
   console.log('Base de données vide : comptes et réclamations de démo créés.');
 }
 
+async function seedAdminInviteCode() {
+  const existing = await Setting.findOne({ key: 'adminInviteCode' });
+  if (existing || !process.env.ADMIN_INVITE_CODE) return;
+  await Setting.create({ key: 'adminInviteCode', value: process.env.ADMIN_INVITE_CODE });
+}
+
 async function connectDB() {
   await mongoose.connect(process.env.MONGODB_URI);
   console.log('Connexion MongoDB établie.');
   await seedIfEmpty();
+  await seedAdminInviteCode();
 }
 
 module.exports = connectDB;

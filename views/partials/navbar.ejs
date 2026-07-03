@@ -37,11 +37,34 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><span class="dropdown-item-text small text-muted"><%= currentUser.email %></span></li>
+              <% if (currentUser.role === ROLES.ADMIN) { %>
+                <li><hr class="dropdown-divider"></li>
+                <li class="px-3 py-1">
+                  <div class="small text-muted mb-1">Code d'invitation admin (usage unique)</div>
+                  <% if (adminInviteCode) { %>
+                    <div class="input-group input-group-sm mb-2">
+                      <input type="text" class="form-control" id="adminInviteCode" value="<%= adminInviteCode %>" readonly>
+                      <button class="btn btn-outline-secondary" type="button" onclick="navigator.clipboard.writeText(document.getElementById('adminInviteCode').value)" title="Copier"><i class="bi bi-clipboard"></i></button>
+                    </div>
+                  <% } else { %>
+                    <p class="small text-muted mb-2">Aucun code actif : il a déjà été utilisé.</p>
+                  <% } %>
+                  <form action="/admin/invite/regenerer" method="POST">
+                    <button type="submit" class="btn btn-sm btn-outline-primary w-100"><i class="bi bi-arrow-repeat me-1"></i>Générer un nouveau code</button>
+                  </form>
+                  <div class="form-text">Un code n'est valable que pour une seule inscription.</div>
+                </li>
+              <% } %>
               <li><hr class="dropdown-divider"></li>
               <li>
-                <form action="/logout?_method=POST" method="POST" class="px-2">
+                <form action="/logout?_method=POST" method="POST" class="px-2 mb-1">
                   <button class="btn btn-sm btn-outline-danger w-100"><i class="bi bi-box-arrow-right me-1"></i>Déconnexion</button>
                 </form>
+              </li>
+              <li class="px-2">
+                <button type="button" class="btn btn-sm btn-link text-danger w-100 text-decoration-none" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                  <i class="bi bi-trash3 me-1"></i>Supprimer mon compte
+                </button>
               </li>
             </ul>
           </li>
@@ -53,6 +76,33 @@
     </div>
   </div>
 </nav>
+
+<% if (currentUser) { %>
+  <div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form action="/compte/supprimer" method="POST">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Supprimer mon compte</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p class="small text-muted">
+              Cette action est définitive : votre compte<% if (currentUser.role !== ROLES.ADMIN) { %> ainsi que vos réclamations<% } %>
+              seront supprimés et ne pourront pas être récupérés.
+            </p>
+            <label for="raisonSuppression" class="form-label">Pourquoi souhaitez-vous supprimer votre compte ? <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="raisonSuppression" name="raison" rows="3" required placeholder="Expliquez brièvement la raison de votre départ..."></textarea>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-trash3 me-1"></i>Supprimer définitivement</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+<% } %>
 
 <div class="container mt-3">
   <% success.forEach(function(m){ %>

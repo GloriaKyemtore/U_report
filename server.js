@@ -42,6 +42,8 @@ app.use(asyncHandler(async (req, res, next) => {
   res.locals.ROLES = store.ROLES;
   res.locals.STATUSES = store.STATUSES;
   res.locals.canModify = store.canModify;
+  res.locals.adminInviteCode =
+    req.session.user && req.session.user.role === store.ROLES.ADMIN ? await store.getAdminInviteCode() : '';
   res.locals.unreadCount = req.session.user ? await store.unreadCount(req.session.user) : 0;
   res.locals.notifications = req.session.user ? await store.unreadList(req.session.user) : [];
   next();
@@ -112,7 +114,7 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', asyncHandler(async (req, res) => {
-  const { nom, email, password } = req.body;
+  const { nom, email, password, role, codeAdmin } = req.body;
   if (!nom || !email || !password) {
     req.flash('error', 'Tous les champs sont obligatoires.');
     return res.redirect('/register');
@@ -121,7 +123,14 @@ app.post('/register', asyncHandler(async (req, res) => {
     req.flash('error', 'Un compte existe déjà avec cet email.');
     return res.redirect('/register');
   }
-  const user = await store.createUser({ nom, email, password, role: store.ROLES.ETUDIANT });
+  const wantsAdmin = role === store.ROLES.ADMIN;
+  if (wantsAdmin && !(await store.consumeAdminInviteCode(codeAdmin))) {
+    req.flash('error', "Code d'invitation administrateur invalide ou déjà utilisé.");
+    return res.redirect('/register');
+  }
+  const user = await store.createUser({
+    nom, email, password, role: wantsAdmin ? store.ROLES.ADMIN : store.ROLES.ETUDIANT,
+  });
   req.session.user = { id: user.id, nom: user.nom, email: user.email, role: user.role };
   req.flash('success', 'Compte créé avec succès !');
   res.redirect('/dashboard');
@@ -130,6 +139,24 @@ app.post('/register', asyncHandler(async (req, res) => {
 app.post('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/'));
 });
+
+app.post('/compte/supprimer', requireAuth, asyncHandler(async (req, res) => {
+  const raison = (req.body.raison || '').trim();
+  if (!raison) {
+    req.flash('error', 'Veuillez indiquer une raison avant de supprimer votre compte.');
+    return res.redirect('/dashboard');
+  }
+  const user = await store.findUserById(req.session.user.id);
+  if (!user) return res.redirect('/logout');
+  if (user.role === store.ROLES.ADMIN && (await store.countAdmins()) <= 1) {
+    req.flash('error', 'Vous êtes le seul administrateur : impossible de supprimer ce compte.');
+    return res.redirect('/dashboard');
+  }
+  await store.deleteUserAccount(user, raison);
+  req.session.user = null;
+  req.flash('success', 'Votre compte a été supprimé. Vous pouvez revenir quand vous le souhaitez en créant un nouveau compte.');
+  res.redirect('/');
+}));
 
 // --- Mot de passe oublié -----------------------------------------------------
 app.get('/forgot-password', (req, res) => {
@@ -174,6 +201,13 @@ app.post('/reset-password/:token', asyncHandler(async (req, res) => {
   await store.resetPassword(user, password);
   req.flash('success', 'Mot de passe réinitialisé avec succès. Vous pouvez vous connecter.');
   res.redirect('/login');
+}));
+
+// --- Code d'invitation admin (a usage unique) --------------------------------
+app.post('/admin/invite/regenerer', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  await store.regenerateAdminInviteCode();
+  req.flash('success', 'Nouveau code d\'invitation généré. Transmettez-le à la personne concernée.');
+  res.redirect('/dashboard');
 }));
 
 // --- Tableau de bord (aiguillage selon le role) -----------------------------
