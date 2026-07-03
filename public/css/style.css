@@ -29,6 +29,14 @@ a { color: var(--ur-primary); }
   color: var(--ur-primary);
 }
 
+/* Pastille de notification collee a la cloche, sans deborder vers le bord de page */
+.notif-badge {
+  top: 0.1rem;
+  right: 0.1rem;
+  font-size: 0.65rem;
+  padding: 0.28em 0.45em;
+}
+
 /* Hero institutionnel */
 .hero {
   background: var(--ur-bg);
