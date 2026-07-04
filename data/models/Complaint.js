@@ -14,7 +14,7 @@ const complaintSchema = new mongoose.Schema(
   {
     ref: { type: String, required: true, unique: true },
     titre: { type: String, required: true },
-    description: { type: String, required: true },
+    description: { type: String, default: '' },
     universite: { type: String, required: true },
     filiere: { type: String, required: true },
     categorie: { type: String, enum: CATEGORIES, default: 'Autre' },

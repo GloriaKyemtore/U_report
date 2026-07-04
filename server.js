@@ -121,6 +121,10 @@ app.post('/register', asyncHandler(async (req, res) => {
     req.flash('error', 'Tous les champs sont obligatoires.');
     return res.redirect('/register');
   }
+  if (password.length < 8) {
+    req.flash('error', 'Le mot de passe doit contenir au moins 8 caractères.');
+    return res.redirect('/register');
+  }
   if (await store.findUserByEmail(email)) {
     req.flash('error', 'Un compte existe déjà avec cet email.');
     return res.redirect('/register');
@@ -200,8 +204,8 @@ app.post('/reset-password/:token', asyncHandler(async (req, res) => {
     return res.redirect('/forgot-password');
   }
   const { password, confirmPassword } = req.body;
-  if (!password || password.length < 6) {
-    req.flash('error', 'Le mot de passe doit contenir au moins 6 caractères.');
+  if (!password || password.length < 8) {
+    req.flash('error', 'Le mot de passe doit contenir au moins 8 caractères.');
     return res.redirect('/reset-password/' + req.params.token);
   }
   if (password !== confirmPassword) {
@@ -283,8 +287,8 @@ app.get('/reclamations/nouvelle', requireAuth, requireEtudiant, (req, res) => {
 
 app.post('/reclamations', requireAuth, requireEtudiant, asyncHandler(async (req, res) => {
   const { titre, description, universite, filiere, categorie, priorite } = req.body;
-  if (!titre || !description || !universite || !filiere) {
-    req.flash('error', "Le titre, la description, l'université et la filière sont obligatoires.");
+  if (!titre || !universite || !filiere) {
+    req.flash('error', "Le titre, l'université et la filière sont obligatoires.");
     return res.redirect('/reclamations/nouvelle');
   }
   const c = await store.createComplaint({
@@ -334,8 +338,8 @@ app.post('/reclamations/:id/modifier', requireAuth, requireEtudiant, asyncHandle
     return res.redirect('/dashboard');
   }
   const { titre, description, universite, filiere, categorie, priorite } = req.body;
-  if (!titre || !description || !universite || !filiere) {
-    req.flash('error', "Le titre, la description, l'université et la filière sont obligatoires.");
+  if (!titre || !universite || !filiere) {
+    req.flash('error', "Le titre, l'université et la filière sont obligatoires.");
     return res.redirect('/reclamations/' + complaint.id + '/modifier');
   }
   await store.updateComplaint(complaint, { titre, description, universite, filiere, categorie, priorite });

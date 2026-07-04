@@ -27,7 +27,11 @@
             <span><i class="bi bi-person me-1"></i><%= auteur ? auteur.nom : 'Inconnu' %></span>
             <span><i class="bi bi-clock me-1"></i><%= formatDate(complaint.createdAt) %></span>
           </div>
-          <p class="mb-0" style="white-space: pre-line;"><%= complaint.description %></p>
+          <% if (complaint.description) { %>
+            <p class="mb-0" style="white-space: pre-line;"><%= complaint.description %></p>
+          <% } else { %>
+            <p class="mb-0 text-muted fst-italic">Aucune description fournie.</p>
+          <% } %>
         </div>
       </div>
 
