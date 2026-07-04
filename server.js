@@ -10,6 +10,7 @@ const flash = require('connect-flash');
 const methodOverride = require('method-override');
 const store = require('./data/store');
 const connectDB = require('./data/db');
+const { envoyerEmail } = require('./data/mailer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -293,6 +294,11 @@ app.post('/reclamations', requireAuth, requireEtudiant, asyncHandler(async (req,
   }
   const c = await store.createComplaint({
     titre, description, universite, filiere, categorie, priorite, auteurId: req.session.user.id,
+  });
+  await envoyerEmail({
+    to: req.session.user.email,
+    subject: `Réclamation ${c.ref} bien reçue`,
+    text: `Bonjour ${req.session.user.nom},\n\nVotre réclamation "${titre}" (référence ${c.ref}) a bien été enregistrée par U-Report. Vous serez notifié dans l'application dès qu'elle sera traitée.\n\nL'équipe U-Report`,
   });
   req.flash('success', `Réclamation ${c.ref} déposée avec succès.`);
   res.redirect('/reclamations/' + c.id);
