@@ -18,7 +18,10 @@
                 <label class="form-label">Mot de passe</label>
                 <a href="/forgot-password" class="small">Mot de passe oublié ?</a>
               </div>
-              <input type="password" name="password" class="form-control" required>
+              <div class="input-group">
+                <input type="password" name="password" class="form-control" required>
+                <button class="btn btn-outline-secondary toggle-password" type="button" tabindex="-1" title="Afficher/masquer le mot de passe"><i class="bi bi-eye"></i></button>
+              </div>
             </div>
             <button class="btn btn-primary w-100">Se connecter</button>
           </form>
