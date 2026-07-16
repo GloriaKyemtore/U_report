@@ -4,8 +4,12 @@
   var count = document.getElementById('complaintsCount');
   if (!select || !container) return;
 
+  var exportPdf = document.getElementById('exportPdfBtn');
+
   function applyFilter(statut) {
     var qs = statut ? '?statut=' + encodeURIComponent(statut) : '';
+    // Garde le lien d'export PDF aligne sur le filtre courant
+    if (exportPdf) exportPdf.href = '/admin/export/pdf' + qs;
     fetch('/dashboard/filtre' + qs)
       .then(function (r) { return r.json(); })
       .then(function (data) {

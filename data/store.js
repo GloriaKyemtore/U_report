@@ -52,6 +52,16 @@ const store = {
     user.resetTokenExpires = null;
     await user.save();
   },
+  verifyPassword: (user, password) => bcrypt.compareSync(password || '', user.passwordHash),
+  // Mise a jour du profil par l'utilisateur lui-meme (nom, telephone, et
+  // eventuellement mot de passe). L'email n'est pas modifiable (identifiant).
+  updateProfile: async (user, { nom, telephone, newPassword }) => {
+    if (nom) user.nom = nom;
+    user.telephone = telephone || '';
+    if (newPassword) user.passwordHash = hash(newPassword);
+    await user.save();
+    return user;
+  },
   countAdmins: () => User.countDocuments({ role: ROLES.ADMIN }),
   // Suppression definitive du compte a la demande de son titulaire : on garde
   // une trace (nom/email/role/raison) et on retire ses reclamations si etudiant

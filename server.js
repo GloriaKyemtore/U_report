@@ -10,6 +10,7 @@ const flash = require('connect-flash');
 const methodOverride = require('method-override');
 const store = require('./data/store');
 const connectDB = require('./data/db');
+const { generateComplaintsPdf } = require('./lib/complaints-pdf');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -174,6 +175,48 @@ app.post('/compte/supprimer', requireAuth, asyncHandler(async (req, res) => {
   res.redirect('/');
 }));
 
+// --- Mon profil --------------------------------------------------------------
+app.get('/profil', requireAuth, asyncHandler(async (req, res) => {
+  const user = await store.findUserById(req.session.user.id);
+  if (!user) return res.redirect('/logout');
+  res.render('profile', { user });
+}));
+
+app.post('/profil', requireAuth, asyncHandler(async (req, res) => {
+  const user = await store.findUserById(req.session.user.id);
+  if (!user) return res.redirect('/logout');
+  const { nom, telephone, currentPassword, newPassword, confirmPassword } = req.body;
+  if (!nom || !nom.trim()) {
+    req.flash('error', 'Le nom est obligatoire.');
+    return res.redirect('/profil');
+  }
+  // Changement de mot de passe optionnel : uniquement si un des champs est rempli
+  let passwordToSet;
+  if (currentPassword || newPassword || confirmPassword) {
+    if (!store.verifyPassword(user, currentPassword)) {
+      req.flash('error', 'Mot de passe actuel incorrect.');
+      return res.redirect('/profil');
+    }
+    if (!newPassword || newPassword.length < 8) {
+      req.flash('error', 'Le nouveau mot de passe doit contenir au moins 8 caractères.');
+      return res.redirect('/profil');
+    }
+    if (newPassword !== confirmPassword) {
+      req.flash('error', 'Les nouveaux mots de passe ne correspondent pas.');
+      return res.redirect('/profil');
+    }
+    passwordToSet = newPassword;
+  }
+  await store.updateProfile(user, {
+    nom: nom.trim(),
+    telephone: (telephone || '').trim(),
+    newPassword: passwordToSet,
+  });
+  req.session.user.nom = user.nom;
+  req.flash('success', passwordToSet ? 'Profil et mot de passe mis à jour.' : 'Profil mis à jour.');
+  res.redirect('/profil');
+}));
+
 // --- Mot de passe oublié -----------------------------------------------------
 app.get('/forgot-password', (req, res) => {
   if (req.session.user) return res.redirect('/dashboard');
@@ -233,6 +276,13 @@ app.post('/admin/demandes/:id/refuser', requireAuth, requireAdmin, asyncHandler(
   const ok = await store.rejectAdminRequest(req.params.id);
   req.flash(ok ? 'success' : 'error', ok ? 'Demande refusée.' : 'Demande introuvable.');
   res.redirect('/dashboard');
+}));
+
+// Export PDF des reclamations (respecte le filtre de statut courant)
+app.get('/admin/export/pdf', requireAuth, requireAdmin, asyncHandler(async (req, res) => {
+  const statutFilter = Object.values(store.STATUSES).includes(req.query.statut) ? req.query.statut : '';
+  const complaints = await store.allComplaints(statutFilter);
+  generateComplaintsPdf(res, { complaints, statutFilter });
 }));
 
 // --- Tableau de bord (aiguillage selon le role) -----------------------------

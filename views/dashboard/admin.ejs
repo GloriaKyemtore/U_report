@@ -64,7 +64,7 @@
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <h6 class="fw-bold mb-0">Toutes les réclamations <span class="text-muted fw-normal">(<span id="complaintsCount"><%= complaints.length %></span>)</span></h6>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
           <label class="form-label small mb-0 text-muted">Statut</label>
           <select id="statutFilter" class="form-select form-select-sm" style="width: auto;">
             <option value="" <%= statutFilter === '' ? 'selected' : '' %>>Tous (historique complet)</option>
@@ -72,6 +72,9 @@
               <option value="<%= s %>" <%= statutFilter === s ? 'selected' : '' %>><%= s %></option>
             <% }); %>
           </select>
+          <a id="exportPdfBtn" class="btn btn-outline-danger btn-sm" href="/admin/export/pdf<%= statutFilter ? ('?statut=' + encodeURIComponent(statutFilter)) : '' %>">
+            <i class="bi bi-file-earmark-pdf me-1"></i>Exporter en PDF
+          </a>
         </div>
       </div>
       <div class="table-responsive">
