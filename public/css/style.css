@@ -31,6 +31,8 @@ a { color: var(--ur-primary); }
 
 /* Champ telephone international (intl-tel-input) sur toute la largeur */
 .iti { width: 100%; }
+/* La liste des pays doit passer au-dessus des champs suivants (ex: bouton oeil du mot de passe) */
+.iti__country-list { z-index: 1000; }
 
 /* Pastille de notification collee a la cloche, sans deborder vers le bord de page */
 .notif-badge {
