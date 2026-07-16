@@ -79,6 +79,9 @@
             <li class="d-flex justify-content-between py-1"><span class="text-muted">Priorité</span><span><%= complaint.priorite %></span></li>
             <li class="d-flex justify-content-between py-1"><span class="text-muted">Université</span><span><%= complaint.universite %></span></li>
             <li class="d-flex justify-content-between py-1"><span class="text-muted">Filière</span><span><%= complaint.filiere %></span></li>
+            <% if (complaint.telephone) { %>
+              <li class="d-flex justify-content-between py-1"><span class="text-muted">Téléphone</span><a href="tel:<%= complaint.telephone.replace(/\s/g, '') %>" class="fw-semibold text-decoration-none"><i class="bi bi-telephone me-1"></i><%= complaint.telephone %></a></li>
+            <% } %>
             <li class="d-flex justify-content-between py-1"><span class="text-muted">Destinataire</span><span><%= complaint.universite %></span></li>
             <li class="d-flex justify-content-between py-1"><span class="text-muted">Mise à jour</span><span><%= formatDate(complaint.updatedAt) %></span></li>
           </ul>

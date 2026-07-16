@@ -69,7 +69,7 @@ const store = {
   complaintsByAuthor: (userId, statut) =>
     Complaint.find({ auteurId: userId, ...(statut ? { statut } : {}) }).sort({ createdAt: -1 }),
   findComplaintById: (id) => (validId(id) ? Complaint.findById(id) : null),
-  createComplaint: async ({ titre, description, universite, filiere, categorie, priorite, auteurId }) => {
+  createComplaint: async ({ titre, description, universite, filiere, telephone, categorie, priorite, auteurId }) => {
     const seq = await Complaint.countDocuments();
     return Complaint.create({
       ref: 'UR-' + (2601 + seq),
@@ -77,6 +77,7 @@ const store = {
       description,
       universite,
       filiere,
+      telephone: telephone || '',
       categorie: CATEGORIES.includes(categorie) ? categorie : 'Autre',
       priorite: PRIORITIES.includes(priorite) ? priorite : 'Normale',
       statut: STATUSES.NOUVEAU,
@@ -112,11 +113,12 @@ const store = {
   markAllAsRead: (user) =>
     Complaint.updateMany(unreadFilter(user), { [unreadField(user)]: false }),
   deleteComplaint: (complaint) => complaint.deleteOne(),
-  updateComplaint: async (complaint, { titre, description, universite, filiere, categorie, priorite }) => {
+  updateComplaint: async (complaint, { titre, description, universite, filiere, telephone, categorie, priorite }) => {
     complaint.titre = titre;
     complaint.description = description;
     complaint.universite = universite;
     complaint.filiere = filiere;
+    complaint.telephone = telephone || '';
     complaint.categorie = CATEGORIES.includes(categorie) ? categorie : complaint.categorie;
     complaint.priorite = PRIORITIES.includes(priorite) ? priorite : complaint.priorite;
     await complaint.save();

@@ -17,6 +17,7 @@ const complaintSchema = new mongoose.Schema(
     description: { type: String, default: '' },
     universite: { type: String, required: true },
     filiere: { type: String, required: true },
+    telephone: { type: String, default: '' },
     categorie: { type: String, enum: CATEGORIES, default: 'Autre' },
     priorite: { type: String, enum: PRIORITIES, default: 'Normale' },
     statut: { type: String, enum: Object.values(STATUSES), default: STATUSES.NOUVEAU },

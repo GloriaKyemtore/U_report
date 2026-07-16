@@ -116,7 +116,7 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', asyncHandler(async (req, res) => {
-  const { nom, email, password, role, motif, indicatif, telephone } = req.body;
+  const { nom, email, password, role, motif, telephone } = req.body;
   if (!nom || !email || !password) {
     req.flash('error', 'Tous les champs sont obligatoires.');
     return res.redirect('/register');
@@ -129,9 +129,8 @@ app.post('/register', asyncHandler(async (req, res) => {
     req.flash('error', 'Un compte existe déjà avec cet email.');
     return res.redirect('/register');
   }
-  // Numero optionnel : on ne prefixe l'indicatif que si un numero a ete saisi
-  const numero = (telephone || '').trim();
-  const telephoneComplet = numero ? `${indicatif || '+226'} ${numero}` : '';
+  // Le numero arrive deja complet (indicatif prefixe cote client par intl-tel-input)
+  const telephoneComplet = (telephone || '').trim();
   // Un compte administrateur n'est jamais cree directement : il passe par une
   // demande, examinee par un administrateur existant depuis son tableau de bord.
   if (role === store.ROLES.ADMIN) {
@@ -290,12 +289,13 @@ app.get('/reclamations/nouvelle', requireAuth, requireEtudiant, (req, res) => {
 
 app.post('/reclamations', requireAuth, requireEtudiant, asyncHandler(async (req, res) => {
   const { titre, description, universite, filiere, categorie, priorite } = req.body;
-  if (!titre || !universite || !filiere) {
-    req.flash('error', "Le titre, l'université et la filière sont obligatoires.");
+  const telephone = (req.body.telephone || '').trim();
+  if (!titre || !universite || !filiere || !telephone) {
+    req.flash('error', "Le titre, l'université, la filière et le numéro de téléphone sont obligatoires.");
     return res.redirect('/reclamations/nouvelle');
   }
   const c = await store.createComplaint({
-    titre, description, universite, filiere, categorie, priorite, auteurId: req.session.user.id,
+    titre, description, universite, filiere, telephone, categorie, priorite, auteurId: req.session.user.id,
   });
   req.flash('success', `Réclamation ${c.ref} déposée avec succès.`);
   res.redirect('/reclamations/' + c.id);
@@ -341,11 +341,12 @@ app.post('/reclamations/:id/modifier', requireAuth, requireEtudiant, asyncHandle
     return res.redirect('/dashboard');
   }
   const { titre, description, universite, filiere, categorie, priorite } = req.body;
-  if (!titre || !universite || !filiere) {
-    req.flash('error', "Le titre, l'université et la filière sont obligatoires.");
+  const telephone = (req.body.telephone || '').trim();
+  if (!titre || !universite || !filiere || !telephone) {
+    req.flash('error', "Le titre, l'université, la filière et le numéro de téléphone sont obligatoires.");
     return res.redirect('/reclamations/' + complaint.id + '/modifier');
   }
-  await store.updateComplaint(complaint, { titre, description, universite, filiere, categorie, priorite });
+  await store.updateComplaint(complaint, { titre, description, universite, filiere, telephone, categorie, priorite });
   req.flash('success', `Réclamation ${complaint.ref} mise à jour.`);
   res.redirect('/reclamations/' + complaint.id);
 }));

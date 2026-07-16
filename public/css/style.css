@@ -29,6 +29,9 @@ a { color: var(--ur-primary); }
   color: var(--ur-primary);
 }
 
+/* Champ telephone international (intl-tel-input) sur toute la largeur */
+.iti { width: 100%; }
+
 /* Pastille de notification collee a la cloche, sans deborder vers le bord de page */
 .notif-badge {
   top: 0.1rem;
