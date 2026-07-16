@@ -116,7 +116,7 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', asyncHandler(async (req, res) => {
-  const { nom, email, password, role, motif } = req.body;
+  const { nom, email, password, role, motif, indicatif, telephone } = req.body;
   if (!nom || !email || !password) {
     req.flash('error', 'Tous les champs sont obligatoires.');
     return res.redirect('/register');
@@ -129,6 +129,9 @@ app.post('/register', asyncHandler(async (req, res) => {
     req.flash('error', 'Un compte existe déjà avec cet email.');
     return res.redirect('/register');
   }
+  // Numero optionnel : on ne prefixe l'indicatif que si un numero a ete saisi
+  const numero = (telephone || '').trim();
+  const telephoneComplet = numero ? `${indicatif || '+226'} ${numero}` : '';
   // Un compte administrateur n'est jamais cree directement : il passe par une
   // demande, examinee par un administrateur existant depuis son tableau de bord.
   if (role === store.ROLES.ADMIN) {
@@ -140,11 +143,11 @@ app.post('/register', asyncHandler(async (req, res) => {
       req.flash('error', 'Une demande est déjà en attente pour cet email.');
       return res.redirect('/register');
     }
-    await store.createAdminRequest({ nom, email, password, motif: motif.trim() });
+    await store.createAdminRequest({ nom, email, telephone: telephoneComplet, password, motif: motif.trim() });
     req.flash('success', "Votre demande d'accès administrateur a été envoyée. Vous pourrez vous connecter dès qu'un administrateur l'aura approuvée.");
     return res.redirect('/login');
   }
-  const user = await store.createUser({ nom, email, password, role: store.ROLES.ETUDIANT });
+  const user = await store.createUser({ nom, email, telephone: telephoneComplet, password, role: store.ROLES.ETUDIANT });
   req.session.user = { id: user.id, nom: user.nom, email: user.email, role: user.role };
   req.flash('success', 'Compte créé avec succès !');
   res.redirect('/dashboard');

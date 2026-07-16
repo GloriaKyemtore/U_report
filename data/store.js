@@ -30,10 +30,11 @@ const store = {
   // Utilisateurs
   findUserByEmail: (email) => User.findOne({ email: String(email).toLowerCase() }),
   findUserById: (id) => (validId(id) ? User.findById(id) : null),
-  createUser: ({ nom, email, password, role }) =>
+  createUser: ({ nom, email, telephone, password, role }) =>
     User.create({
       nom,
       email,
+      telephone: telephone || '',
       passwordHash: hash(password),
       role: role === ROLES.ADMIN ? ROLES.ADMIN : ROLES.ETUDIANT,
     }),
@@ -127,8 +128,8 @@ const store = {
 
   // Demandes d'acces administrateur : le futur admin soumet nom/email/mot de
   // passe/motif, un administrateur existant approuve (compte cree) ou refuse.
-  createAdminRequest: ({ nom, email, password, motif }) =>
-    AdminRequest.create({ nom, email, passwordHash: hash(password), motif }),
+  createAdminRequest: ({ nom, email, telephone, password, motif }) =>
+    AdminRequest.create({ nom, email, telephone: telephone || '', passwordHash: hash(password), motif }),
   findPendingAdminRequestByEmail: (email) =>
     AdminRequest.findOne({ email: String(email).toLowerCase(), statut: 'en_attente' }),
   pendingAdminRequests: () => AdminRequest.find({ statut: 'en_attente' }).sort({ createdAt: 1 }),
@@ -142,7 +143,8 @@ const store = {
       return null; // un compte existe deja entre-temps pour cet email
     }
     const user = await User.create({
-      nom: demande.nom, email: demande.email, passwordHash: demande.passwordHash, role: ROLES.ADMIN,
+      nom: demande.nom, email: demande.email, telephone: demande.telephone || '',
+      passwordHash: demande.passwordHash, role: ROLES.ADMIN,
     });
     demande.statut = 'approuvee';
     await demande.save();
