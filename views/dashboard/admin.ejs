@@ -19,9 +19,11 @@
             </div>
             <div class="d-flex gap-2">
               <form action="/admin/demandes/<%= r.id %>/approuver" method="POST">
+                <%- include('../partials/csrf') %>
                 <button type="submit" class="btn btn-sm btn-success"><i class="bi bi-check-lg me-1"></i>Approuver</button>
               </form>
               <form action="/admin/demandes/<%= r.id %>/refuser" method="POST">
+                <%- include('../partials/csrf') %>
                 <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-lg me-1"></i>Refuser</button>
               </form>
             </div>

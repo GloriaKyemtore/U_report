@@ -53,6 +53,7 @@
               <li><hr class="dropdown-divider"></li>
               <li>
                 <form action="/logout?_method=POST" method="POST" class="px-2 mb-1">
+                  <%- include('csrf') %>
                   <button class="btn btn-sm btn-outline-danger w-100"><i class="bi bi-box-arrow-right me-1"></i>Déconnexion</button>
                 </form>
               </li>
@@ -77,6 +78,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <form action="/compte/supprimer" method="POST">
+          <%- include('csrf') %>
           <div class="modal-header">
             <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Supprimer mon compte</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

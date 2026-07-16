@@ -6,6 +6,10 @@
 
   var POLL_MS = 20000;
 
+  // Jeton CSRF pour les requetes POST (lu dans la balise meta injectee par le serveur)
+  var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+  var csrfToken = csrfMeta ? csrfMeta.getAttribute('content') : '';
+
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
@@ -49,7 +53,10 @@
 
   dropdown.addEventListener('shown.bs.dropdown', function () {
     updateBadge(0);
-    fetch('/notifications/read', { method: 'POST' }).catch(function () {});
+    fetch('/notifications/read', {
+      method: 'POST',
+      headers: { 'x-csrf-token': csrfToken },
+    }).catch(function () {});
   });
 
   setInterval(refresh, POLL_MS);

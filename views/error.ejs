@@ -1,0 +1,8 @@
+<%- include('partials/head', { title: 'Erreur' }) %>
+<%- include('partials/navbar') %>
+<div class="container py-5 text-center">
+  <h1 class="display-4 fw-bold text-danger">Oups</h1>
+  <p class="lead text-muted"><%= message || "Une erreur est survenue. Veuillez réessayer." %></p>
+  <a href="/" class="btn btn-primary">Retour à l'accueil</a>
+</div>
+<%- include('partials/footer') %>

@@ -6,14 +6,19 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo').default;
 const flash = require('connect-flash');
 const methodOverride = require('method-override');
+const rateLimit = require('express-rate-limit');
+const { csrfSync } = require('csrf-sync');
 const store = require('./data/store');
 const connectDB = require('./data/db');
 const { generateComplaintsPdf } = require('./lib/complaints-pdf');
+const { isValidPhoneNumber } = require('./lib/phone');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const isProd = process.env.NODE_ENV === 'production';
 
 // Transmet les erreurs des handlers async au middleware d'erreur d'Express
 const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -21,6 +26,9 @@ const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, ne
 // --- Configuration ----------------------------------------------------------
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+// Derriere le proxy HTTPS d'un hebergeur (Render, Railway...) pour que les
+// cookies "secure" et la limite de debit voient la vraie IP / le vrai schema.
+if (isProd) app.set('trust proxy', 1);
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
@@ -30,13 +38,41 @@ app.use(
     secret: process.env.SESSION_SECRET || 'u-report-secret-dev-only',
     resave: false,
     saveUninitialized: false,
+    // Sessions persistees en base : plus de deconnexion generale au redemarrage
+    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI, ttl: 14 * 24 * 60 * 60 }),
+    cookie: {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: isProd, // cookie envoye uniquement en HTTPS en production
+      maxAge: 14 * 24 * 60 * 60 * 1000,
+    },
   })
 );
 app.use(flash());
 
+// Protection CSRF (jeton synchronise stocke en session) sur toutes les
+// requetes qui modifient l'etat (POST). Les GET restent exemptes.
+const { generateToken, csrfSynchronisedProtection, invalidCsrfTokenError } = csrfSync({
+  getTokenFromRequest: (req) => req.body._csrf || req.headers['x-csrf-token'],
+});
+app.use(csrfSynchronisedProtection);
+
+// Limite les tentatives sur les routes sensibles d'authentification
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50, // assez large pour une IP partagee (campus), assez bas pour bloquer le brute-force
+  standardHeaders: true,
+  legacyHeaders: false,
+  handler: (req, res) => {
+    req.flash('error', 'Trop de tentatives. Veuillez réessayer dans quelques minutes.');
+    res.redirect(req.originalUrl);
+  },
+});
+
 // Variables disponibles dans toutes les vues
 app.use(asyncHandler(async (req, res, next) => {
   res.locals.currentUser = req.session.user || null;
+  res.locals.csrfToken = generateToken(req);
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   res.locals.STATUS_BADGE = store.STATUS_BADGE;
@@ -98,7 +134,7 @@ app.get('/login', (req, res) => {
   res.render('auth/login');
 });
 
-app.post('/login', asyncHandler(async (req, res) => {
+app.post('/login', authLimiter, asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await store.findUserByEmail(email || '');
   const bcrypt = require('bcryptjs');
@@ -116,7 +152,7 @@ app.get('/register', (req, res) => {
   res.render('auth/register');
 });
 
-app.post('/register', asyncHandler(async (req, res) => {
+app.post('/register', authLimiter, asyncHandler(async (req, res) => {
   const { nom, email, password, role, motif, telephone } = req.body;
   if (!nom || !email || !password) {
     req.flash('error', 'Tous les champs sont obligatoires.');
@@ -132,6 +168,10 @@ app.post('/register', asyncHandler(async (req, res) => {
   }
   // Le numero arrive deja complet (indicatif prefixe cote client par intl-tel-input)
   const telephoneComplet = (telephone || '').trim();
+  if (telephoneComplet && !isValidPhoneNumber(telephoneComplet)) {
+    req.flash('error', 'Numéro de téléphone invalide.');
+    return res.redirect('/register');
+  }
   // Un compte administrateur n'est jamais cree directement : il passe par une
   // demande, examinee par un administrateur existant depuis son tableau de bord.
   if (role === store.ROLES.ADMIN) {
@@ -190,6 +230,11 @@ app.post('/profil', requireAuth, asyncHandler(async (req, res) => {
     req.flash('error', 'Le nom est obligatoire.');
     return res.redirect('/profil');
   }
+  const telProfil = (telephone || '').trim();
+  if (telProfil && !isValidPhoneNumber(telProfil)) {
+    req.flash('error', 'Numéro de téléphone invalide.');
+    return res.redirect('/profil');
+  }
   // Changement de mot de passe optionnel : uniquement si un des champs est rempli
   let passwordToSet;
   if (currentPassword || newPassword || confirmPassword) {
@@ -209,7 +254,7 @@ app.post('/profil', requireAuth, asyncHandler(async (req, res) => {
   }
   await store.updateProfile(user, {
     nom: nom.trim(),
-    telephone: (telephone || '').trim(),
+    telephone: telProfil,
     newPassword: passwordToSet,
   });
   req.session.user.nom = user.nom;
@@ -223,7 +268,7 @@ app.get('/forgot-password', (req, res) => {
   res.render('auth/forgot-password', { resetLink: null });
 });
 
-app.post('/forgot-password', asyncHandler(async (req, res) => {
+app.post('/forgot-password', authLimiter, asyncHandler(async (req, res) => {
   const user = await store.findUserByEmail(req.body.email || '');
   if (!user) {
     req.flash('error', "Aucun compte n'est associé à cet email.");
@@ -242,7 +287,7 @@ app.get('/reset-password/:token', asyncHandler(async (req, res) => {
   res.render('auth/reset-password', { token: req.params.token });
 }));
 
-app.post('/reset-password/:token', asyncHandler(async (req, res) => {
+app.post('/reset-password/:token', authLimiter, asyncHandler(async (req, res) => {
   const user = await store.findUserByResetToken(req.params.token);
   if (!user) {
     req.flash('error', 'Lien de réinitialisation invalide ou expiré.');
@@ -325,6 +370,7 @@ app.get('/dashboard/filtre', requireAuth, asyncHandler(async (req, res) => {
     statutFilter,
     STATUS_BADGE: store.STATUS_BADGE,
     canModify: store.canModify,
+    csrfToken: generateToken(req), // le fragment contient le formulaire de suppression
   });
   res.json({ count: complaints.length, html });
 }));
@@ -342,6 +388,10 @@ app.post('/reclamations', requireAuth, requireEtudiant, asyncHandler(async (req,
   const telephone = (req.body.telephone || '').trim();
   if (!titre || !universite || !filiere || !telephone) {
     req.flash('error', "Le titre, l'université, la filière et le numéro de téléphone sont obligatoires.");
+    return res.redirect('/reclamations/nouvelle');
+  }
+  if (!isValidPhoneNumber(telephone)) {
+    req.flash('error', 'Numéro de téléphone invalide.');
     return res.redirect('/reclamations/nouvelle');
   }
   const c = await store.createComplaint({
@@ -394,6 +444,10 @@ app.post('/reclamations/:id/modifier', requireAuth, requireEtudiant, asyncHandle
   const telephone = (req.body.telephone || '').trim();
   if (!titre || !universite || !filiere || !telephone) {
     req.flash('error', "Le titre, l'université, la filière et le numéro de téléphone sont obligatoires.");
+    return res.redirect('/reclamations/' + complaint.id + '/modifier');
+  }
+  if (!isValidPhoneNumber(telephone)) {
+    req.flash('error', 'Numéro de téléphone invalide.');
     return res.redirect('/reclamations/' + complaint.id + '/modifier');
   }
   await store.updateComplaint(complaint, { titre, description, universite, filiere, telephone, categorie, priorite });
@@ -471,6 +525,17 @@ app.post('/notifications/read', requireAuth, asyncHandler(async (req, res) => {
 // --- 404 --------------------------------------------------------------------
 app.use((req, res) => {
   res.status(404).render('404');
+});
+
+// --- Gestion des erreurs ----------------------------------------------------
+app.use((err, req, res, next) => {
+  // Jeton CSRF absent ou invalide (formulaire trop vieux, session expiree...)
+  if (err === invalidCsrfTokenError) {
+    req.flash('error', 'Votre session a expiré ou le formulaire est invalide. Veuillez réessayer.');
+    return res.redirect(req.get('Referer') || '/');
+  }
+  console.error('Erreur non gérée :', err);
+  res.status(500).render('error', { message: 'Une erreur est survenue. Veuillez réessayer.' });
 });
 
 connectDB()
