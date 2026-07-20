@@ -3,6 +3,36 @@
 Plateforme de gestion des réclamations universitaires.
 Stack **Node.js / Express + EJS + Bootstrap 5**, données stockées dans **MongoDB Atlas** (Mongoose).
 
+## Démarrage rapide (en local)
+
+Toutes les commandes, dans l'ordre, depuis un terminal :
+
+```bash
+# 1. Récupérer le code
+git clone https://github.com/GloriaKyemtore/U_report.git
+cd U_report
+
+# 2. Installer les dépendances
+npm install
+
+# 3. Créer son fichier de configuration
+cp .env.example .env
+# puis ouvrir .env et renseigner MONGODB_URI, SESSION_SECRET et NODE_ENV
+# (générer un SESSION_SECRET) :
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+
+# 4. Lancer le serveur
+npm run dev        # redémarre à chaque modification (ou : npm start)
+```
+
+Puis ouvrir **http://localhost:3000** dans le navigateur et se connecter avec un
+[compte de démonstration](#comptes-de-démonstration).
+
+> Si le serveur affiche une erreur de connexion à MongoDB, voir
+> [Autorisation d'IP sur MongoDB Atlas](#️-autorisation-dip-sur-mongodb-atlas).
+
+Le détail de chaque étape est décrit dans les sections ci-dessous.
+
 ## Prérequis
 
 - **Node.js** installé (vérifier avec `node --version`)
