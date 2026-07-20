@@ -2,7 +2,6 @@
   --ur-primary: #0d4f8b;
   --ur-primary-dark: #08325a;
   --ur-accent: #c9a227;
-  --ur-clock: #198754;
   --ur-bg: #f7f9fb;
   --ur-border: #e3e8ee;
 }
@@ -40,19 +39,6 @@ a { color: var(--ur-primary); }
 }
 .navbar-institution .nav-link:hover {
   color: var(--ur-primary);
-}
-
-/* Horloge temps reel de la navbar : chiffres a chasse fixe pour que la largeur
-   ne bouge pas a chaque seconde. */
-.nav-clock {
-  display: inline-flex;
-  align-items: center;
-  color: var(--ur-clock);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  font-size: .95rem;
-  padding: .5rem;
-  white-space: nowrap;
 }
 
 /* Champ telephone international (intl-tel-input) sur toute la largeur */
