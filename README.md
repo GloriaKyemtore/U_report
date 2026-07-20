@@ -21,8 +21,11 @@ Puis ouvrir http://localhost:3000
 | Rôle     | Email               | Mot de passe   |
 |----------|---------------------|----------------|
 | Admin    | admin@ureport.bf    | admin123       |
-| Étudiant | gloria@ureport.bf   | etudiant123    |
 | Étudiant | etudiant@ureport.bf | etudiant123    |
+
+Ces deux comptes ne sont créés qu'au premier démarrage sur une base vide.
+Pour retirer les comptes et réclamations de démo d'une base déjà remplie :
+`npm run purge-demo`.
 
 ## Fonctionnalités (MVP)
 

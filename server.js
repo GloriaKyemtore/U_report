@@ -544,7 +544,7 @@ connectDB()
       console.log(`U-Report démarré sur http://localhost:${PORT}`);
       console.log('Comptes de démo :');
       console.log('  Admin    -> admin@ureport.bf / admin123');
-      console.log('  Étudiant -> gloria@ureport.bf / etudiant123');
+      console.log('  Étudiant -> etudiant@ureport.bf / etudiant123');
     });
   })
   .catch((err) => {
