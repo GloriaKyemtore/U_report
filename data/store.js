@@ -13,11 +13,27 @@ const DeletionLog = require('./models/DeletionLog');
 const { STATUSES, STATUS_FLOW, STATUS_BADGE, CATEGORIES, PRIORITIES, ROLES } = require('./constants');
 
 const RESET_TOKEN_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const PAGE_SIZE = 10; // reclamations affichees par page dans les tableaux de bord
 const hash = (pwd) => bcrypt.hashSync(pwd, 10);
 const validId = (id) => mongoose.isValidObjectId(id);
 const unreadField = (user) => (user.role === ROLES.ADMIN ? 'nonLuAdmin' : 'nonLuEtudiant');
 const unreadFilter = (user) =>
   user.role === ROLES.ADMIN ? { nonLuAdmin: true } : { auteurId: user.id, nonLuEtudiant: true };
+
+// Recupere une page de reclamations correspondant a `filter`, triees de la plus
+// recente a la plus ancienne. Renvoie aussi le total et le nombre de pages pour
+// construire la navigation. `page` est ramene dans [1, pages] pour rester valide
+// meme si le client demande une page hors limites.
+async function pageOfComplaints(filter, page) {
+  const total = await Complaint.countDocuments(filter);
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const current = Math.min(Math.max(1, parseInt(page, 10) || 1), pages);
+  const items = await Complaint.find(filter)
+    .sort({ createdAt: -1 })
+    .skip((current - 1) * PAGE_SIZE)
+    .limit(PAGE_SIZE);
+  return { items, total, page: current, pages };
+}
 
 const store = {
   STATUSES,
@@ -75,9 +91,15 @@ const store = {
   },
 
   // Reclamations
+  // Listes completes (sans pagination) : servent a l'export PDF et aux stats.
   allComplaints: (statut) => Complaint.find(statut ? { statut } : {}).sort({ createdAt: -1 }),
   complaintsByAuthor: (userId, statut) =>
     Complaint.find({ auteurId: userId, ...(statut ? { statut } : {}) }).sort({ createdAt: -1 }),
+  // Versions paginees pour l'affichage des tableaux de bord. Renvoient les
+  // reclamations de la page demandee + de quoi construire la navigation.
+  allComplaintsPage: (statut, page) => pageOfComplaints(statut ? { statut } : {}, page),
+  complaintsByAuthorPage: (userId, statut, page) =>
+    pageOfComplaints({ auteurId: userId, ...(statut ? { statut } : {}) }, page),
   findComplaintById: (id) => (validId(id) ? Complaint.findById(id) : null),
   createComplaint: async ({ titre, description, universite, filiere, telephone, categorie, priorite, auteurId }) => {
     const seq = await Complaint.countDocuments();

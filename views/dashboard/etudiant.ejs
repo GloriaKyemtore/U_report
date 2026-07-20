@@ -21,6 +21,7 @@
   </div>
 
   <div id="complaintsContainer"><%- include('../partials/etudiant-cards', { complaints: complaints, statutFilter: statutFilter }) %></div>
+  <div id="pagination"><%- include('../partials/pagination', { page: pagination.page, pages: pagination.pages }) %></div>
 </div>
 
 <%- include('../partials/footer', { scripts: '<script src="/js/dashboard-filter.js"></script>' }) %>

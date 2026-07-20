@@ -333,16 +333,25 @@ app.get('/admin/export/pdf', requireAuth, requireAdmin, asyncHandler(async (req,
 // --- Tableau de bord (aiguillage selon le role) -----------------------------
 app.get('/dashboard', requireAuth, asyncHandler(async (req, res) => {
   const statutFilter = Object.values(store.STATUSES).includes(req.query.statut) ? req.query.statut : '';
+  const page = req.query.page;
   if (req.session.user.role === store.ROLES.ADMIN) {
+    const { items, total, page: current, pages } = await store.allComplaintsPage(statutFilter, page);
     return res.render('dashboard/admin', {
-      complaints: await store.allComplaints(statutFilter),
+      complaints: items,
+      pagination: { page: current, pages, total },
       stats: await store.stats(),
       statutFilter,
       adminRequests: await store.pendingAdminRequests(),
     });
   }
+  const { items, total, page: current, pages } = await store.complaintsByAuthorPage(
+    req.session.user.id,
+    statutFilter,
+    page
+  );
   res.render('dashboard/etudiant', {
-    complaints: await store.complaintsByAuthor(req.session.user.id, statutFilter),
+    complaints: items,
+    pagination: { page: current, pages, total },
     statutFilter,
   });
 }));
@@ -357,22 +366,28 @@ function renderPartial(req, view, locals) {
 app.get('/dashboard/filtre', requireAuth, asyncHandler(async (req, res) => {
   const statutFilter = Object.values(store.STATUSES).includes(req.query.statut) ? req.query.statut : '';
   if (req.session.user.role === store.ROLES.ADMIN) {
-    const complaints = await store.allComplaints(statutFilter);
+    const { items, total, page, pages } = await store.allComplaintsPage(statutFilter, req.query.page);
     const html = await renderPartial(req, 'partials/admin-rows', {
-      complaints,
+      complaints: items,
       STATUS_BADGE: store.STATUS_BADGE,
     });
-    return res.json({ count: complaints.length, html });
+    const pagination = await renderPartial(req, 'partials/pagination', { page, pages });
+    return res.json({ count: total, html, pagination });
   }
-  const complaints = await store.complaintsByAuthor(req.session.user.id, statutFilter);
+  const { items, total, page, pages } = await store.complaintsByAuthorPage(
+    req.session.user.id,
+    statutFilter,
+    req.query.page
+  );
   const html = await renderPartial(req, 'partials/etudiant-cards', {
-    complaints,
+    complaints: items,
     statutFilter,
     STATUS_BADGE: store.STATUS_BADGE,
     canModify: store.canModify,
     csrfToken: generateToken(req), // le fragment contient le formulaire de suppression
   });
-  res.json({ count: complaints.length, html });
+  const pagination = await renderPartial(req, 'partials/pagination', { page, pages });
+  res.json({ count: total, html, pagination });
 }));
 
 // --- Reclamations -----------------------------------------------------------
