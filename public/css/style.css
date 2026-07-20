@@ -10,6 +10,18 @@ body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: #212529;
   background: #ffffff;
+  /* Colonne pleine hauteur : permet de coller le footer en bas de la fenetre
+     meme quand le contenu de la page est court (voir "body > footer"). */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Le footer absorbe tout l'espace vertical restant au-dessus de lui : il reste
+   donc en bas de la fenetre si la page est courte, et se laisse pousser vers le
+   bas des que le contenu depasse la hauteur de l'ecran. */
+body > footer {
+  margin-top: auto;
 }
 
 a { color: var(--ur-primary); }
